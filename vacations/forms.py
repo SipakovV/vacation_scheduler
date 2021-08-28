@@ -24,10 +24,6 @@ class DateInput(DateInput):
 
 
 class VacationForm(ModelForm):
-    #start = DateField(widget=AdminDateWidget)
-    #employee = IntegerField(widget=HiddenInput(), initial=1)
-    #end = DateField(widget=AdminDateWidget)
-    #empl_id = 0
 
     class Meta:
         model = Vacation
@@ -40,18 +36,13 @@ class VacationForm(ModelForm):
         self.fields["start"].widget = DateInput(format='%d-%m-%Y')
         self.fields["end"].widget = DateInput(format='%d-%m-%Y')
         print('kwargs(forms.init).initial = ', kwargs['initial']['employee'])
-        #self.empl_id = int(kwargs['employee'])
-        #print("empl_id=", self.empl_id)
-        #self.fields["employee"] = Employee.objects.get(pk=1)  #kwargs['empl'])
-        #self.fields["employee"] = Employee.objects.get(pk=kwargs['empl'])
 
     def clean(self):
         cleaned_data = super(VacationForm, self).clean()
         start = cleaned_data.get('start')
         end = cleaned_data.get('end')
-        #employee_pk = self.empl_id
-        employee_pk = cleaned_data.get('employee')
-        employee = Employee.objects.get(pk=employee_pk.pk)
+        employee = cleaned_data.get('employee')
+        #employee = Employee.objects.get(pk=employee_pk.pk)
         print('clean_employee = ', employee)
         entry_anniversary = employee.entry_date
         new_year = datetime.date.today().year
