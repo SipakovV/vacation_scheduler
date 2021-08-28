@@ -3,12 +3,19 @@ body {
     font-family: sans-serif;
 }
 
-header h1 {
+header h1{
     font-size: 40pt;
+
     text-transform: uppercase;
     text-align: center;
     background: url("bg.jpg") left / auto 100% no-repeat;
 }
+
+body h3 {
+    text-transform: uppercase;
+    color: #2764A0;
+}
+
 
 a {
     color: #2784FF;
@@ -34,6 +41,10 @@ table {
     table-layout: fixed;
     width: 100%;
     border-collapse: collapse;
+}
+
+li {
+    margin: 20px;
 }
 
 .col1,

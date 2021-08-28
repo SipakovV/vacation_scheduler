@@ -4,23 +4,33 @@ import datetime
 from django.core.exceptions import ValidationError
 from django.forms.fields import DateField, IntegerField
 
-from .models import Employee, Vacation   #, Department
-
-'''
-class EmployeeForm(ModelForm):
-    class Meta:
-        model = Employee
-        fields = ('id', 'name', 'department', 'replaces', 'rating')
-'''
+from .models import Employee, Vacation, Department
 
 
 class DateInput(DateInput):
     input_type = "date"
 
     def __init__(self, **kwargs):
-        kwargs["format"] = "%Y-%m-%d"
+        #kwargs["format"] = "%Y-%m-%d"
         #kwargs["format"] = "%m-%d-%Y"
         super().__init__(**kwargs)
+
+
+class EmployeeForm(ModelForm):
+    class Meta:
+        model = Employee
+        fields = ('name', 'department', 'replaces', 'entry_date', 'vacation_days')
+        #exclude = ['rating']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["entry_date"].widget = DateInput(format='%d-%m-%Y')
+
+
+class DepartmentForm(ModelForm):
+    class Meta:
+        model = Department
+        fields = ('name',)
 
 
 class VacationForm(ModelForm):

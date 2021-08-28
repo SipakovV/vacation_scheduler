@@ -1,65 +1,62 @@
-from django.db.models.functions import ExtractMonth, Extract
 from django.shortcuts import render, get_object_or_404
-from django.views.decorators.clickjacking import xframe_options_exempt
 
 from django.views.generic.edit import CreateView
 from django.urls import reverse_lazy
 from pyatspi import setTimeout
 
 from .models import Employee, Department, Vacation
-from .forms import VacationForm
+from .forms import VacationForm, EmployeeForm, DepartmentForm
+
 
 # Create your views here.
+
+
+class DepartmentCreateView(CreateView):
+    template_name = 'vacations/add_department.html'
+    form_class = DepartmentForm
+    success_url = reverse_lazy('index')
+
+
+class EmployeeCreateView(CreateView):
+    template_name = 'vacations/add_employee.html'
+    form_class = EmployeeForm
+    success_url = reverse_lazy('index')
+
+
+    #def get_success_url(self):
+    #    return reverse_lazy('details', kwargs={'employee_id': employee_id})
 
 
 class VacationCreateView(CreateView):
     template_name = 'vacations/details.html'
     form_class = VacationForm
-    #success_url = reverse_lazy('add')
-    empl = '0'
+    # success_url = reverse_lazy('add')
+    employee_id = '0'
 
     def get_success_url(self):
-        empl = self.kwargs['empl']
-        print('get_success_url empl = ', empl)
-        return reverse_lazy('details', kwargs={'empl': empl})
+        employee_id = self.kwargs['employee_id']
+        print('get_success_url employee_id = ', employee_id)
+        return reverse_lazy('details', kwargs={'employee_id': employee_id})
 
     def get_initial(self):
-        employee = get_object_or_404(Employee, pk=self.kwargs.get('empl'))
+        employee = get_object_or_404(Employee, pk=self.kwargs.get('employee_id'))
         return {
             'employee': employee,
         }
 
     def get_context_data(self, **kwargs):
-        print('kwargs(views) = ', self.kwargs['empl'], type(self.kwargs['empl']))
+        print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
         context = super().get_context_data(**kwargs)
         context['employees'] = Employee.objects.all()
         context['vacations'] = Vacation.objects.all()
         context['departments'] = Department.objects.all()
 
-        context['employee'] = Employee.objects.get(pk=int(self.kwargs['empl']))
-        empl = self.kwargs['empl']
-        self.initial = {'employee': Employee.objects.get(pk=int(empl))}
+        context['employee'] = Employee.objects.get(pk=int(self.kwargs['employee_id']))
+        empl = self.kwargs['employee_id']
+        # self.initial = {'employee': Employee.objects.get(pk=int(empl))}
         print('CreateView.initial = ', self.initial)
 
         return context
-    '''
-    def form_valid(self, form):
-        # This method is called when valid form data has been POSTed.
-        # It should return an HttpResponse.
-        print('form_valid')
-        return super().form_valid(form)
-    
-    def form_invalid(self, form):
-        print('form_invalid')
-        return super().form_invalid(form)
-    
-    def POST(self):
-        print('POST() called')
-        try:
-            super.POST(self)
-        except ValidationError:
-            print('ValidationError exception!!!')
-    '''
 
 
 def by_department(request, department_id):

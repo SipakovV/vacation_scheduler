@@ -20,6 +20,5 @@ from vacations.views import index
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path('scheduler/', include('vacationscheduler.urls')),
     path('vacations/', include('vacations.urls')),
 ]

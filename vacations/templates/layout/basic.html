@@ -13,6 +13,12 @@
     </header>
     <nav>
         <a href="{% url 'index' %}">Главная</a>
+        <hr>
+        <a href="{% url 'add_employee' %}">Добавить сотрудника</a>
+        <hr>
+        <a href="{% url 'add_department' %}">Добавить отдел</a>
+        <hr>
+        <a href="http://192.168.0.26:8000/admin">Администратор</a>
     </nav>
     {% block content %}
     {% endblock %}
