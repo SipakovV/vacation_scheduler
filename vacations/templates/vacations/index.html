@@ -1,0 +1,31 @@
+{% extends "layout/basic.html" %}
+
+{% block content %}
+<section>
+    <h1><font color="#2764A0">Рейтинг работников</font></h1>
+    <h2><select onChange="window.location.href=this.value">
+        <option selected="selected">Все отделы</option>
+        {% for department in departments %}
+            <option value="{% url 'by_department' department.pk %}">{{ department.name }}</option>
+        {% endfor %}
+    </select></h2>
+    <table>
+        <tr style="background-color: #47A4FF;">
+            <th class="col1">Место</th>
+            <th class="col2">Рейтинг</th>
+            <th class="col3">ФИО</th>
+            <th class="col4">Замещает</th>
+            <th class="col5">Отпуска</th>
+        </tr>
+        {% for employee in employees %}
+            <tr style="background-color:{% cycle '#FAFAFA' '#EFEFEF' %};"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'details' employee.pk %}">{{ employee.name }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+                <td>
+                {% for vacation in vacations %}
+                    {% if vacation.employee.pk == employee.pk %}
+                        {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
+                    {% endif %}
+                {% endfor %}</td></tr>
+        {% endfor %}
+    </table>
+</section>
+{% endblock %}

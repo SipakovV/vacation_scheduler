@@ -1,0 +1,14 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %} :: График отпусков</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'vacations/style.css' %}">
+</head>
+<body>
+
+    {% block content %}
+    {% endblock %}
+</body>
+</html>

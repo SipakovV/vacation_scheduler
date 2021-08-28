@@ -1,0 +1,66 @@
+body {
+    background-color: #e6f7f6;
+    font-family: sans-serif;
+}
+
+header h1 {
+    font-size: 40pt;
+    text-transform: uppercase;
+    text-align: center;
+    background: url("bg.jpg") left / auto 100% no-repeat;
+}
+
+a {
+    color: #2784FF;
+}
+
+nav {
+    font-size: 16pt;
+    width: 150px;
+    float: left;
+}
+
+nav a {
+    display: block;
+    margin: 10px 0px;
+}
+
+section {
+    margin-left: 170px;
+    background-color: #e6f7f6;
+}
+
+table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.col1,
+.col2 {
+    width: 40px;
+}
+
+.col3 {
+    width: 30%;
+}
+
+.col4 {
+    width: 25%;
+}
+
+.col_detail1 {
+    width: 20%;
+    text-align: left;
+    font-weight: normal;
+}
+
+.col_detail2 {
+    width: 80%;
+    text-align: left;
+}
+
+th, td {
+    padding: 10px;
+    height: 10px;
+}

@@ -1,0 +1,18 @@
+{% extends "layout/embed.html" %}
+
+{% block title %}Добавить{% endblock %}
+
+{% block content %}
+
+
+
+<section>
+<h1>Добавить</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Добавить">
+    </form>
+</section>
+
+{% endblock %}

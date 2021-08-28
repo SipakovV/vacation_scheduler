@@ -1,0 +1,14 @@
+{% extends "layout/basic.html" %}
+
+{% block content %}
+    <h1>Рейтинг работников</h1>
+    {% for employee in employees %}
+        <div>
+            <h2>{{ employee.name }}</h2>
+            <p>{{ employee.id }}</p>
+            <p>{{ employee.department }}</p>
+            <p>{{ employee.replaces }}</p>
+            <p>{{ employee.rating }}</p>
+        </div>
+    {% endfor %}
+{% endblock %}

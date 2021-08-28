@@ -1,0 +1,12 @@
+{% extends "layout/basic.html" %}
+
+{% block content %}
+    <h1>Отпуска</h1>
+    {% for vacation in vacations %}
+        <div>
+            <h2>{{ vacation.employee }}</h2>
+            <p>{{ vacation.start }}</p>
+            <p>{{ vacation.end }}</p>
+        </div>
+    {% endfor %}
+{% endblock %}

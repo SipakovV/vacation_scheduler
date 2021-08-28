@@ -1,0 +1,54 @@
+{% extends "layout/basic.html" %}
+
+{% block title %}Карточка сотрудника{% endblock %}
+
+{% block content %}
+<section>
+    <table>
+        <tr style="background-color: #47A4FF;">
+            <th class="col_detail1">ФИО</th>
+            <th class="col_detail2" style="font-size: 20pt; overflow:hidden; white-space:nowrap;">{{ employee.name }}</th>
+        </tr>
+        <tr style="background-color: #FAFAFA;">
+            <td>Отдел</td>
+            <td><a href="{% url 'by_department' employee.department.pk %}">{{ employee.department }}</a></td>
+        </tr>
+        <tr style="background-color: #EFEFEF;">
+            <td>Дата начала работы</td>
+            <td>{{ employee.entry_date }}</td>
+        </tr>
+        <tr style="background-color: #FAFAFA;">
+            <td>Рейтинг</td>
+            <td>{{ employee.rating }}</td>
+        </tr>
+        <tr style="background-color: #EFEFEF;">
+            <td>Замещает</td>
+            <td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+        </tr>
+        <tr style="background-color: #FAFAFA;">
+            <td>Отпускные дни</td>
+            <td>{{ employee.vacation_days }}</td>
+        </tr>
+        <tr style="background-color: #EFEFEF;">
+            <td>Отпуска</td>
+            <td>{% for vacation in vacations %}
+                {% if vacation.employee.name == employee.name %}
+                {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
+                {% endif %}
+            {% endfor %}</td>
+        </tr>
+
+    </table>
+    <!--
+    <form method="post" action="/vacations/add/" name="Добавить отпуск">
+        {% csrf_token %}
+        <input type="hidden" name="csrfmiddlewaretoken" value="5uzDTcaVrnRmnqKEoeMBai4D7GOCVrSXuDj6NESZweJj80r5vRAtYkdE1EP1nv76">
+        <p><input type="hidden" name="employee" required="" id="id_employee" value="{{ employee.pk }}"></p>
+        <p><label for="id_start">Начало отпуска:</label> <input type="text" name="start" required="" id="id_start"></p>
+        <p><label for="id_end">Конец отпуска:</label> <input type="text" name="end" required="" id="id_end"></p>
+        <input type="submit" value="Добавить">
+    </form>
+    -->
+    <embed src="{% url 'add' empl=employee.pk %}" width="700" height="400">
+</section>
+{% endblock %}
