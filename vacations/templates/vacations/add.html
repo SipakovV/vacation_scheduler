@@ -7,7 +7,7 @@
 
 
 <section>
-<h1>Добавить</h1>
+<h1>Добавить {{ employee }}</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

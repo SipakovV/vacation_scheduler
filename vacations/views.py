@@ -1,5 +1,5 @@
 from django.db.models.functions import ExtractMonth, Extract
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views.decorators.clickjacking import xframe_options_exempt
 
 from django.views.generic.edit import CreateView
@@ -15,17 +15,37 @@ from .forms import VacationForm
 class VacationCreateView(CreateView):
     template_name = 'vacations/add.html'
     form_class = VacationForm
-    success_url = reverse_lazy('add')
+    #success_url = reverse_lazy('add')
+    empl = '0'
+
+
+    def get_success_url(self):
+        # if you are passing 'pk' from 'urls' to 'DeleteView' for company
+        # capture that 'pk' as companyid and pass it to 'reverse_lazy()' function
+        empl = self.kwargs['empl']
+        print('get_success_url empl = ', empl)
+        return reverse_lazy('add', kwargs={'empl': empl})
+
     #success_url = '/vacations/add1.html'
 
     #def form_valid(self, form):
     #    form.employee = Employee.objects.get(pk=self.kwargs['empl'])
     #    return super().form_valid(form)
+    def get_initial(self):
+        employee = get_object_or_404(Employee, pk=self.kwargs.get('empl'))
+        return {
+            'employee': employee,
+        }
+
 
     def get_context_data(self, **kwargs):
-        print('kwargs(views) = ', self.kwargs['empl'])
+        print('kwargs(views) = ', self.kwargs['empl'], type(self.kwargs['empl']))
         context = super().get_context_data(**kwargs)
         context['employees'] = Employee.objects.all()
+        context['employee'] = Employee.objects.get(pk=int(self.kwargs['empl']))
+        empl = self.kwargs['empl']
+        self.initial = {'employee': Employee.objects.get(pk=int(empl))}
+        print('CreateView.initial = ', self.initial)
         #empl = Employee.objects.get(pk=self.kwargs['empl'])
 
         return context
