@@ -3,14 +3,19 @@
 {% block title %}{{ employee.name }}{% endblock %}
 
 {% block content %}
-<section>
-    <h3>{{ employee.name }}: Редактирование</h3><hr>
+<section style="width = 100%">
+    <!--<h3>{{ employee.name }}: Редактирование</h3><hr>-->
+    <table>
+        <tr class="blue"><th class="col_detail2" style="width = 100%">{{ employee.name }}</th></tr>
+    </table>
     <form method="post">
         {% csrf_token %}
-            {{ form.as_ul }}
+        <table class="form">
+            {{ form.as_table }}
+        </table>
         <input type="submit" class="button" value="Сохранить">
 
-        <a href="{% url 'index' %}"><button class="button deletebutton">Удалить сотрудника</button></a>
+        <a href="{% url 'employee_delete_form' employee.pk %}"><button class="button deletebutton">Удалить сотрудника</button></a>
     </form>
 </section>
 {% endblock %}

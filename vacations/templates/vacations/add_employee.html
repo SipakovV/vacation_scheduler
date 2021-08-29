@@ -8,7 +8,9 @@
     <h3>Добавление сотрудника</h3><hr>
     <form method="post">
         {% csrf_token %}
-            {{ form.as_ul }}
+        <table>
+            {{ form.as_table }}
+        </table>
         <input type="submit" class="button" value="Добавить">
     </form>
 </section>

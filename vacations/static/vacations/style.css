@@ -10,7 +10,7 @@ body {
 }
 
 header h1{
-    font-size: 40pt;
+    font-size: 30pt;
 
     text-transform: uppercase;
     text-align: center;
@@ -22,9 +22,14 @@ body h3 {
     color: #2764A0;
 }
 
+body h2 {
+    margin-bottom: 15px;
+}
 
 a {
     color: #2784FF;
+    /*color: #47A4FF;*/
+    text-decoration: none;
 }
 
 nav {
@@ -42,12 +47,17 @@ section {
 
 table {
     table-layout: fixed;
-    width: 100%;
+    margin: 0px;
+    /*width: 100%;*/
     border-collapse: collapse;
 }
 
 section li {
     margin: 8px;
+}
+
+td a {
+    display: block;
 }
 
 .col1,
@@ -72,6 +82,7 @@ section li {
 .col_detail2 {
     width: 80%;
     text-align: left;
+    font-size: 20pt;
 }
 
 .button {
@@ -91,6 +102,22 @@ section li {
 .deletebutton {
     background-color: #FFE5E5;
     color: #DD3333;
+}
+
+.white {
+    background-color: #FAFAFA;
+}
+
+.gray {
+    background-color: #EFEFEF;
+}
+
+.blue {
+    background-color: #47A4FF;
+}
+
+table.form {
+    background-color: #FAFAFA;
 }
 
 ul {
@@ -121,7 +148,6 @@ li a:hover:not(.active) {
 
 .navbar {
     display: block;
-
 }
 
 th, td {
@@ -136,5 +162,5 @@ select {
   padding: 5px 35px 5px 5px;
   font-size: 16px;
   border: 1px solid #CCC;
-  height: 40px;
+  height: 38px;
 }

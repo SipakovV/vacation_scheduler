@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 
-from django.views.generic.edit import CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from pyatspi import setTimeout
 
@@ -15,6 +15,14 @@ class DepartmentCreateView(CreateView):
     template_name = 'vacations/add_department.html'
     form_class = DepartmentForm
     success_url = reverse_lazy('index')
+
+
+class DepartmentDeleteView(DeleteView):
+    template_name = 'vacations/delete_department.html'
+    model = Department
+    success_url = reverse_lazy('index')
+    #success_message = "Deleted Successfully"
+    #context_object_name = 'employee'
 
 
 class EmployeeCreateView(CreateView):
@@ -38,6 +46,14 @@ class EmployeeUpdateView(UpdateView):
         return context
     #def get_success_url(self):
     #    return reverse_lazy('details', kwargs={'employee_id': employee_id})
+
+
+class EmployeeDeleteView(DeleteView):
+    template_name = 'vacations/delete_employee.html'
+    model = Employee
+    #success_url = reverse_lazy('index')
+    #success_message = "Deleted Successfully"
+    #context_object_name = 'employee'
 
 
 class VacationCreateView(CreateView):

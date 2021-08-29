@@ -1,5 +1,7 @@
 {% extends "layout/basic.html" %}
 
+{% block index %}class="active"{% endblock %}
+
 {% block title %}{{ current_department.name }}{% endblock %}
 
 {% block content %}
@@ -11,7 +13,7 @@
         {% endfor %}
     </select></h2>
     <table class="default">
-        <tr style="background-color: #47A4FF;">
+        <tr class="blue">
             <th class="col1">Место</th>
             <th class="col2">Рейтинг</th>
             <th class="col3">ФИО</th>
@@ -19,7 +21,7 @@
             <th class="col5">Отпуска</th>
         </tr>
         {% for employee in employees %}
-            <tr style="background-color:{% cycle '#FAFAFA' '#EFEFEF' %};"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'details' employee.pk %}">{{ employee.name }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+            <tr class="{% cycle 'white' 'gray' %}"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'details' employee.pk %}">{{ employee.name }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
                 <td>
                 {% for vacation in vacations %}
                     {% if vacation.employee.pk == employee.pk %}

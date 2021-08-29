@@ -5,31 +5,31 @@
 {% block content %}
 <section>
     <table>
-        <tr style="background-color: #47A4FF;">
+        <tr class="blue">
             <th class="col_detail1">ФИО</th>
-            <th class="col_detail2" style="font-size: 20pt;">{{ employee.name }}<a href="{% url 'employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a></th>
+            <th class="col_detail2">{{ employee.name }}<a href="{% url 'employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a></th>
         </tr>
-        <tr style="background-color: #FAFAFA;">
+        <tr class="white">
             <td class="col_detail1">Отдел</td>
             <td><a href="{% url 'by_department' employee.department.pk %}">{{ employee.department }}</a></td>
         </tr>
-        <tr style="background-color: #EFEFEF;">
+        <tr class="gray">
             <td class="col_detail1">Дата начала работы</td>
             <td>{{ employee.entry_date }}</td>
         </tr>
-        <tr style="background-color: #FAFAFA;">
+        <tr class="white">
             <td class="col_detail1">Рейтинг</td>
             <td>{{ employee.rating }}</td>
         </tr>
-        <tr style="background-color: #EFEFEF;">
+        <tr class="gray">
             <td class="col_detail1">Замещает</td>
             <td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
         </tr>
-        <tr style="background-color: #FAFAFA;">
+        <tr class="white">
             <td class="col_detail1">Отпускные дни</td>
             <td>{{ employee.vacation_days }}</td>
         </tr>
-        <tr style="background-color: #EFEFEF;">
+        <tr class="gray">
             <td class="col_detail1">Отпуска</td>
             <td>{% for vacation in vacations %}
                 {% if vacation.employee.name == employee.name %}
@@ -37,7 +37,7 @@
                 {% endif %}
             {% endfor %}</td>
         </tr>
-        <tr style="background-color: #FAFAFA;">
+        <tr class="white">
             <td class="col_detail1">Добавить отпуск</td>
             <td><form method="post">
                 {% csrf_token %}
