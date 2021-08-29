@@ -71,6 +71,24 @@ li {
     text-align: left;
 }
 
+.button {
+  font: bold 14px Arial;
+  text-decoration: none;
+  background-color: #EEEEEE;
+  color: #333333;
+  margin: 10px;
+  padding: 10px 16px 10px 16px;
+  border-top: 1px solid #CCCCCC;
+  border-right: 1px solid #333333;
+  border-bottom: 1px solid #333333;
+  border-left: 1px solid #CCCCCC;
+}
+
+.deletebutton {
+  background-color: #FFBBBB;
+  color: #DD3333;
+}
+
 th, td {
     padding: 10px;
     height: 10px;

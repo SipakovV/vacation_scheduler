@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse_lazy
 from pyatspi import setTimeout
 
@@ -23,6 +23,19 @@ class EmployeeCreateView(CreateView):
     success_url = reverse_lazy('index')
 
 
+class EmployeeUpdateView(UpdateView):
+    template_name = 'vacations/edit_employee.html'
+    #form_class = EmployeeForm
+    success_url = reverse_lazy('index')
+    model = Employee
+    fields = ('department', 'replaces', 'entry_date', 'vacation_days')
+    template_name_suffix = '_update_form'
+    #employee = get_object_or_404(pk=kwargs.get('employee_id')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['employee'] = Employee.objects.get(pk=int(self.kwargs['pk']))
+        return context
     #def get_success_url(self):
     #    return reverse_lazy('details', kwargs={'employee_id': employee_id})
 

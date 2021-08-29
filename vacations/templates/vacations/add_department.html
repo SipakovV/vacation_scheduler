@@ -1,13 +1,13 @@
 {% extends "layout/basic.html" %}
 
-{% block title %}Добавить отдел{% endblock %}
+{% block title %}Добавление отдела{% endblock %}
 
 {% block content %}
 <section>
     <h3>Добавление отдела</h3><hr>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.as_ul }}
         <input type="submit" value="Добавить">
     </form>
 </section>

@@ -1,0 +1,16 @@
+{% extends "layout/basic.html" %}
+
+{% block title %}{{ employee.name }}{% endblock %}
+
+{% block content %}
+<section>
+    <h3>{{ employee.name }}: Редактирование</h3><hr>
+    <form method="post">
+        {% csrf_token %}
+            {{ form.as_ul }}
+        <input type="submit" class="button" value="Сохранить">
+
+        <a href="{% url 'index' %}" class="button deletebutton">Удалить сотрудника</a>
+    </form>
+</section>
+{% endblock %}
