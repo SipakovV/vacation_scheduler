@@ -1,5 +1,11 @@
+html {
+    min-height: 100%;
+    background: linear-gradient(to top, #FAFAFA, #91d5ff);
+}
+
 body {
-    background-color: #e6f7f6;
+    /*background-color: #e6f7f6;*/
+
     font-family: sans-serif;
 }
 
@@ -8,7 +14,7 @@ header h1{
 
     text-transform: uppercase;
     text-align: center;
-    background: url("bg.jpg") left / auto 100% no-repeat;
+    /*background: url("bg.jpg") left / auto 100% no-repeat;*/
 }
 
 body h3 {
@@ -31,7 +37,7 @@ nav {
 
 section {
     margin-left: 15%;
-    background-color: #e6f7f6;
+    /*background-color: #e6f7f6;*/
 }
 
 table {
@@ -121,4 +127,14 @@ li a:hover:not(.active) {
 th, td {
     padding: 10px;
     height: 10px;
+}
+
+/* SELECT CUSTOMIZATION */
+select {
+  margin: 0px;
+  width: 250px;
+  padding: 5px 35px 5px 5px;
+  font-size: 16px;
+  border: 1px solid #CCC;
+  height: 40px;
 }
