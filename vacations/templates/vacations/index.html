@@ -1,8 +1,9 @@
 {% extends "layout/basic.html" %}
 
+{% block index %}class="active"{% endblock %}
+
 {% block content %}
 <section>
-    <h3>Рейтинг работников</h3><hr>
     <h2><select onChange="window.location.href=this.value">
         <option selected="selected">Все отделы</option>
         {% for department in departments %}

@@ -1,6 +1,7 @@
 {% extends "layout/basic.html" %}
 
 {% block title %}Добавление сотрудника{% endblock %}
+{% block add_employee %}class="active"{% endblock %}
 
 {% block content %}
 <section>
@@ -8,7 +9,7 @@
     <form method="post">
         {% csrf_token %}
             {{ form.as_ul }}
-        <input type="submit" value="Добавить">
+        <input type="submit" class="button" value="Добавить">
     </form>
 </section>
 {% endblock %}

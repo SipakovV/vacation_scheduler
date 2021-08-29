@@ -4,7 +4,6 @@
 
 {% block content %}
 <section>
-    <h3>Рейтинг работников</h3><hr>
     <h2><select onChange="window.location.href=this.value">
         <option value="{% url 'index' %}">Все отделы</option>
         {% for department in departments %}
