@@ -5,15 +5,18 @@ html {
 
 body {
     /*background-color: #e6f7f6;*/
-
+    margin: 0;
     font-family: sans-serif;
 }
 
 header h1{
     font-size: 30pt;
-
+    /*background-color: #47A4FF;
+    background: linear-gradient(to top, #94daff, #87C9FF);*/
     text-transform: uppercase;
     text-align: center;
+    margin: 1%;
+    margin-bottom: 2%
     /*background: url("bg.jpg") left / auto 100% no-repeat;*/
 }
 
@@ -35,13 +38,14 @@ a {
 nav {
     margin-left: 0px;
     font-size: 14pt;
-    width: 14%;
+    width: 15%;
     float: left;
     border-right: 2px;
 }
 
 section {
-    margin-left: 15%;
+
+    margin-left: 16%;
     /*background-color: #e6f7f6;*/
 }
 
@@ -126,6 +130,11 @@ ul {
     padding: 0;
     width: 100%;
     background-color: #FAFAFA;
+    /*
+    position: fixed;
+    height: 100%;
+    overflow: auto;
+    */
 }
 
 li a {
