@@ -2,13 +2,10 @@ from django.shortcuts import render, get_object_or_404
 
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from pyatspi import setTimeout
+#from pyatspi import setTimeout
 
 from .models import Employee, Department, Vacation
 from .forms import VacationForm, EmployeeForm, DepartmentForm
-
-
-# Create your views here.
 
 
 class DepartmentCreateView(CreateView):
@@ -21,8 +18,6 @@ class DepartmentDeleteView(DeleteView):
     template_name = 'vacations/delete_department.html'
     model = Department
     success_url = reverse_lazy('index')
-    #success_message = "Deleted Successfully"
-    #context_object_name = 'employee'
 
 
 class EmployeeCreateView(CreateView):
@@ -33,33 +28,25 @@ class EmployeeCreateView(CreateView):
 
 class EmployeeUpdateView(UpdateView):
     template_name = 'vacations/edit_employee.html'
-    #form_class = EmployeeForm
     success_url = reverse_lazy('index')
     model = Employee
     fields = ('department', 'replaces', 'entry_date', 'vacation_days')
     template_name_suffix = '_update_form'
-    #employee = get_object_or_404(pk=kwargs.get('employee_id')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['employee'] = Employee.objects.get(pk=int(self.kwargs['pk']))
         return context
-    #def get_success_url(self):
-    #    return reverse_lazy('details', kwargs={'employee_id': employee_id})
 
 
 class EmployeeDeleteView(DeleteView):
     template_name = 'vacations/delete_employee.html'
     model = Employee
-    #success_url = reverse_lazy('index')
-    #success_message = "Deleted Successfully"
-    #context_object_name = 'employee'
 
 
 class VacationCreateView(CreateView):
     template_name = 'vacations/details.html'
     form_class = VacationForm
-    # success_url = reverse_lazy('add')
     employee_id = '0'
 
     def get_success_url(self):
@@ -82,7 +69,6 @@ class VacationCreateView(CreateView):
 
         context['employee'] = Employee.objects.get(pk=int(self.kwargs['employee_id']))
         empl = self.kwargs['employee_id']
-        # self.initial = {'employee': Employee.objects.get(pk=int(empl))}
         print('CreateView.initial = ', self.initial)
 
         return context
