@@ -5,6 +5,7 @@ from .views import index, by_department, details, VacationCreateView, EmployeeCr
     DepartmentCreateView, EmployeeDeleteView, DepartmentDeleteView
 
 urlpatterns = [
+
     path('', index, name='index'),
     path('department/add/', DepartmentCreateView.as_view(), name='add_department'),
     path('department/<int:pk>/delete/', DepartmentDeleteView.as_view(), name='department_delete_form'),
