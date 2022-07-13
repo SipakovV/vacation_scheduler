@@ -45,20 +45,6 @@ class Vacation(models.Model):
     end = models.DateField(verbose_name='Конец отпуска')
 
     def save(self, *args, **kwargs):
-        '''
-        if self.start >= self.end:
-            print('Error: Invalid period!')
-            #raise ValidationError('Invalid period!')
-            return
-
-        if empl.replaces is not None:
-            replaced_empl = Employee.objects.get(pk=empl.replaces.pk)
-            replaced_vacations = Vacation.objects.filter(employee=replaced_empl.pk)
-            for vacation in replaced_vacations:
-                if self.start <= vacation.end <= self.end or self.start <= vacation.start <= self.end or self.start >= vacation.start and self.end <= vacation.end:
-                    print('Error: Replaced employee have a vacation at that period!')
-                    return
-        '''
         empl = Employee.objects.get(pk=self.employee.pk)
         entry_anniversary = empl.entry_date
         new_year = datetime.date.today().year
@@ -71,35 +57,29 @@ class Vacation(models.Model):
             relevant_flag = False
 
         rating_coef = {
-            1: 20,
-            2: 50,
-            3: 10,
-            4: 0,
-            5: -20,
-            6: -60,
-            7: -70,
-            8: -50,
-            9: -20,
-            10: 10,
-            11: 30,
-            12: 50,
+            1: 11,
+            2: 12,
+            3: 9,
+            4: 7,
+            5: 5,
+            6: 3,
+            7: 1,
+            8: 2,
+            9: 4,
+            10: 6,
+            11: 8,
+            12: 10,
         }
 
         delta = datetime.timedelta(days=1)
         cur_date = self.start
         diff = 0
 
-        # if delta.days > empl.vacation_days:
-        #    print('Error: Not enough vacation days!')
-        #    return
-
         while cur_date <= self.end:
-            #print(cur_date.isoweekday())
             if cur_date.isoweekday() <= 5:
                 if relevant_flag:
                     empl.vacation_days -= 1
                 diff += rating_coef[cur_date.month]
-            #print(cur_date, 'diff =', diff)
             cur_date += delta
 
         empl.change_rating(diff)

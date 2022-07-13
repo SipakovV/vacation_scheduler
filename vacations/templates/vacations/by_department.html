@@ -6,12 +6,15 @@
 
 {% block content %}
 <section>
-    <h2><select onChange="window.location.href=this.value">
-        <option value="{% url 'index' %}">Все отделы</option>
-        {% for department in departments %}
-            <option {% if department == current_department %} selected="selected" {% endif %} value="{% url 'by_department' department.pk %}">{{ department.name }}</option>
-        {% endfor %}
-    </select></h2>
+    <h2>
+        <select onChange="window.location.href=this.value">
+            <option value="{% url 'index' %}">Все отделы</option>
+            {% for department in departments %}
+                <option {% if department == current_department %} selected="selected" {% endif %} value="{% url 'by_department' department.pk %}">{{ department.name }}</option>
+            {% endfor %}
+        </select>
+        <button>Пересчитать рейтинг</button>
+    </h2>
     <table class="default">
         <tr class="blue">
             <th class="col1">Место</th>

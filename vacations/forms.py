@@ -79,7 +79,7 @@ class VacationForm(ModelForm):
                 if relevant_flag:
                     vacation_days -= 1
                     if vacation_days < 0:
-                         raise ValidationError('Недостаточно отпускных!')
+                        raise ValidationError('Недостаточно отпускных!')
             cur_date += delta
 
         if start and end:
