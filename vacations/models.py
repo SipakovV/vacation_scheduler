@@ -19,6 +19,7 @@ class Department(models.Model):
 
 class Employee(models.Model):
     name = models.CharField(max_length=50, verbose_name='ФИО')
+    #login = models.OneToOneField('users.User', verbose_name='Логин', blank=True, null=True, on_delete=models.SET_NULL)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, verbose_name='ID отдела')
     replaces = models.ForeignKey('self', on_delete=models.SET_NULL, verbose_name='Замещает', default=None, blank=True,
                                  null=True)
