@@ -1,10 +1,18 @@
 from django.forms import ModelForm, SelectDateWidget, DateInput, Form, HiddenInput
 from django.contrib.admin.widgets import AdminDateWidget
 import datetime
+import logging
+from logging.handlers import RotatingFileHandler
+
 from django.core.exceptions import ValidationError
 from django.forms.fields import DateField, IntegerField
 
 from .models import Employee, Vacation, Department
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+handler = RotatingFileHandler('forms_log.log', maxBytes=1000, backupCount=5)
+logger.addHandler(handler)
 
 
 class DateInput(DateInput):
@@ -40,12 +48,12 @@ class VacationForm(ModelForm):
         fields = ('start', 'end', 'employee')
 
     def __init__(self, *args, **kwargs):
-        print('kwargs(forms.init) = ', kwargs)
+        #print('kwargs(forms.init) = ', kwargs)
         super().__init__(*args, **kwargs)
         self.fields["employee"].widget = HiddenInput()
         self.fields["start"].widget = DateInput(format='%d-%m-%Y')
         self.fields["end"].widget = DateInput(format='%d-%m-%Y')
-        print('kwargs(forms.init).initial = ', kwargs['initial']['employee'])
+        #print('kwargs(forms.init).initial = ', kwargs['initial']['employee'])
 
     def clean(self):
         cleaned_data = super(VacationForm, self).clean()
@@ -53,7 +61,7 @@ class VacationForm(ModelForm):
         end = cleaned_data.get('end')
         employee = cleaned_data.get('employee')
         #employee = Employee.objects.get(pk=employee_pk.pk)
-        print('clean_employee = ', employee)
+        logger.debug(('clean ', employee))
         entry_anniversary = employee.entry_date
         new_year = datetime.date.today().year
         entry_anniversary = entry_anniversary.replace(year=new_year)

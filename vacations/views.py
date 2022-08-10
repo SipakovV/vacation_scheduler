@@ -4,8 +4,17 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 #from pyatspi import setTimeout
 
+import logging
+from logging.handlers import RotatingFileHandler
+
 from .models import Employee, Department, Vacation
 from .forms import VacationForm, EmployeeForm, DepartmentForm
+
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+handler = RotatingFileHandler('views_log.log', maxBytes=1000, backupCount=5)
+logger.addHandler(handler)
 
 
 class DepartmentCreateView(CreateView):
@@ -51,7 +60,7 @@ class VacationCreateView(CreateView):
 
     def get_success_url(self):
         employee_id = self.kwargs['employee_id']
-        print('get_success_url employee_id = ', employee_id)
+        #print('get_success_url employee_id = ', employee_id)
         return reverse_lazy('details', kwargs={'employee_id': employee_id})
 
     def get_initial(self):
@@ -61,7 +70,7 @@ class VacationCreateView(CreateView):
         }
 
     def get_context_data(self, **kwargs):
-        print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
+        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
         context = super().get_context_data(**kwargs)
         context['employees'] = Employee.objects.all()
         context['vacations'] = Vacation.objects.all()
@@ -69,7 +78,7 @@ class VacationCreateView(CreateView):
 
         context['employee'] = Employee.objects.get(pk=int(self.kwargs['employee_id']))
         empl = self.kwargs['employee_id']
-        print('CreateView.initial = ', self.initial)
+        #print('CreateView.initial = ', self.initial)
 
         return context
 

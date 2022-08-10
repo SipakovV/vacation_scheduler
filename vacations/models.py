@@ -1,9 +1,18 @@
 import datetime
+import logging
+from logging.handlers import RotatingFileHandler
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.db import models
 from django.db.models.functions import ExtractMonth
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S")
+handler = RotatingFileHandler('models_log.log', maxBytes=1000, backupCount=5)
+handler.setFormatter(formatter)
+logger.addHandler(handler)
 
 
 class Department(models.Model):
@@ -33,6 +42,10 @@ class Employee(models.Model):
 
     def change_rating(self, diff):
         self.rating += diff
+
+    def save(self, *args, **kwargs):
+        super(Employee, self).save(*args, **kwargs)
+        logger.info('Employee added/edited: ' + self.name)
 
     class Meta:
         verbose_name_plural = 'Работники'
@@ -87,6 +100,7 @@ class Vacation(models.Model):
         empl.save()
 
         super(Vacation, self).save(*args, **kwargs)
+        logger.info('Vacation added: ' + empl.name + ' ' + self.start.strftime('%m/%d/%Y') + '-' + self.end.strftime('%m/%d/%Y'))
 
     class Meta:
         verbose_name_plural = 'Отпуска'
