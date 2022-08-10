@@ -7,12 +7,12 @@ from django.shortcuts import render
 from django.db import models
 from django.db.models.functions import ExtractMonth
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S")
-handler = RotatingFileHandler('models_log.log', maxBytes=1000, backupCount=5)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+#formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S")
+#handler = RotatingFileHandler('models_log.log', maxBytes=1000, backupCount=5)
+#handler.setFormatter(formatter)
+#logger.addHandler(handler)
 
 
 class Department(models.Model):
@@ -100,6 +100,9 @@ class Vacation(models.Model):
         empl.save()
 
         super(Vacation, self).save(*args, **kwargs)
+        logger.error('TEST ERROR')
+        logger.warning('TEST WARNING')
+        logger.info('INFO with error word')
         logger.info('Vacation added: ' + empl.name + ' ' + self.start.strftime('%m/%d/%Y') + '-' + self.end.strftime('%m/%d/%Y'))
 
     class Meta:

@@ -9,10 +9,10 @@ from django.forms.fields import DateField, IntegerField
 
 from .models import Employee, Vacation, Department
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-handler = RotatingFileHandler('forms_log.log', maxBytes=1000, backupCount=5)
-logger.addHandler(handler)
+#handler = RotatingFileHandler('forms_log.log', maxBytes=1000, backupCount=5)
+#logger.addHandler(handler)
 
 
 class DateInput(DateInput):

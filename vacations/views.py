@@ -11,10 +11,10 @@ from .models import Employee, Department, Vacation
 from .forms import VacationForm, EmployeeForm, DepartmentForm
 
 
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-handler = RotatingFileHandler('views_log.log', maxBytes=1000, backupCount=5)
-logger.addHandler(handler)
+#handler = RotatingFileHandler('views_log.log', maxBytes=1000, backupCount=5)
+#logger.addHandler(handler)
 
 
 class DepartmentCreateView(CreateView):

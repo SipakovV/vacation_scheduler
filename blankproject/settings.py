@@ -12,6 +12,45 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s.%(msecs)04d] %(name)-18s:%(lineno)-3s | %(levelname)-8s: %(message)s',
+            'datefmt': '%Y.%m.%d %H:%M:%S',
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s',
+        }
+    },
+    'handlers': {
+        'console': {
+            'level': 'WARNING',
+            'class': 'logging.StreamHandler',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'logs/debug.log',
+            'formatter': 'verbose',
+            'maxBytes': 1024*1024*10, # 10MB
+            'backupCount': 10,
+        },
+    },
+    'loggers': {
+        'users': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+        'vacations': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+    },
+}
+
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
