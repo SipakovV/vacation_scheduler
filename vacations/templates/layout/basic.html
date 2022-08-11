@@ -9,14 +9,14 @@
 </head>
 <body>
     <header>
-        <h1>График отпусков</h1>
+        <h1>График отпусков<div>{% block auth %}<a href="{% url 'accounts:login' %}">Вход в систему</a>{% endblock %}</div></h1>
     </header>
     <nav>
         <ul>
-            <li><a {% block index %}{% endblock %} href="{% url 'index' %}">Главная</a></li>
-            <li><a {% block add_employee %}{% endblock %} href="{% url 'add_employee' %}">Добавить сотрудника</a></li>
-            <li><a {% block add_department %}{% endblock %} href="{% url 'add_department' %}">Добавить отдел</a></li>
-            <li><a href="http://192.168.100.15:8000/admin">Администратор</a></li>
+            <li><a {% block index %}{% endblock %} href="{% url 'vacations:index' %}">Главная</a></li>
+            <li><a {% block add_employee %}{% endblock %} href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>
+            <li><a {% block add_department %}{% endblock %} href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>
+            <li><a href="http://192.168.0.26:8000/admin">Администратор</a></li>
         </ul>
     </nav>
     {% block content %}

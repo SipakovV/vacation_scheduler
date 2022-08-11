@@ -7,11 +7,11 @@
     <table>
         <tr class="blue">
             <th class="col_detail1">ФИО</th>
-            <th class="col_detail2">{{ employee.name }}<a href="{% url 'employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a></th>
+            <th class="col_detail2">{{ employee.name }}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a></th>
         </tr>
         <tr class="white">
             <td class="col_detail1">Отдел</td>
-            <td><a href="{% url 'by_department' employee.department.pk %}">{{ employee.department }}</a></td>
+            <td><a href="{% url 'vacations:by_department' employee.department.pk %}">{{ employee.department }}</a></td>
         </tr>
         <tr class="gray">
             <td class="col_detail1">Дата начала работы</td>
@@ -23,7 +23,7 @@
         </tr>
         <tr class="gray">
             <td class="col_detail1">Замещает</td>
-            <td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+            <td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
         </tr>
         <tr class="white">
             <td class="col_detail1">Отпускные дни</td>

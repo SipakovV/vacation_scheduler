@@ -2,42 +2,32 @@ from django.shortcuts import render, get_object_or_404
 
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-#from pyatspi import setTimeout
-
-import logging
-from logging.handlers import RotatingFileHandler
 
 from .models import Employee, Department, Vacation
 from .forms import VacationForm, EmployeeForm, DepartmentForm
 
 
-#logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-#handler = RotatingFileHandler('views_log.log', maxBytes=1000, backupCount=5)
-#logger.addHandler(handler)
-
-
 class DepartmentCreateView(CreateView):
     template_name = 'vacations/add_department.html'
     form_class = DepartmentForm
-    success_url = reverse_lazy('index')
+    success_url = reverse_lazy('vacations:index')
 
 
 class DepartmentDeleteView(DeleteView):
     template_name = 'vacations/delete_department.html'
     model = Department
-    success_url = reverse_lazy('index')
+    success_url = reverse_lazy('vacations:index')
 
 
 class EmployeeCreateView(CreateView):
     template_name = 'vacations/add_employee.html'
     form_class = EmployeeForm
-    success_url = reverse_lazy('index')
+    success_url = reverse_lazy('vacations:index')
 
 
 class EmployeeUpdateView(UpdateView):
     template_name = 'vacations/edit_employee.html'
-    success_url = reverse_lazy('index')
+    success_url = reverse_lazy('vacations:index')
     model = Employee
     fields = ('department', 'replaces', 'entry_date', 'vacation_days')
     template_name_suffix = '_update_form'
@@ -61,7 +51,7 @@ class VacationCreateView(CreateView):
     def get_success_url(self):
         employee_id = self.kwargs['employee_id']
         #print('get_success_url employee_id = ', employee_id)
-        return reverse_lazy('details', kwargs={'employee_id': employee_id})
+        return reverse_lazy('vacations:details', kwargs={'employee_id': employee_id})
 
     def get_initial(self):
         employee = get_object_or_404(Employee, pk=self.kwargs.get('employee_id'))
@@ -114,3 +104,4 @@ def index(request):
 
 def success(request):
     return render(request, 'vacations/success.html')
+

@@ -1,11 +1,14 @@
-from django.urls import path, re_path
-from django.views.generic import TemplateView
+
+from django.urls import path, include
 
 from .views import index, by_department, details, VacationCreateView, EmployeeCreateView, EmployeeUpdateView, success, \
     DepartmentCreateView, EmployeeDeleteView, DepartmentDeleteView
 
+app_name = 'vacations'
+
 urlpatterns = [
 
+    #path('accounts/', include(('users.urls', 'login'), namespace='users')),
     path('', index, name='index'),
     path('department/add/', DepartmentCreateView.as_view(), name='add_department'),
     path('department/<int:pk>/delete/', DepartmentDeleteView.as_view(), name='department_delete_form'),

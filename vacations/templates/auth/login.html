@@ -1,0 +1,27 @@
+
+{% extends "layout/basic.html" %}
+
+{% block title %}Вход в систему{% endblock %}
+
+{% block content %}
+<section>
+    <h1>Вход в систему</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Войти">
+    </form>
+
+    {% for message in messages %}
+        <p id="message">{{ message }}</p>
+    {% endfor %}
+
+</section>
+{% endblock %}
+
+
+
+
+
+
+

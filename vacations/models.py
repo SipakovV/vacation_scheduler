@@ -7,12 +7,7 @@ from django.shortcuts import render
 from django.db import models
 from django.db.models.functions import ExtractMonth
 
-#logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-#formatter = logging.Formatter("%(asctime)s %(levelname)s: %(message)s", "%Y-%m-%d %H:%M:%S")
-#handler = RotatingFileHandler('models_log.log', maxBytes=1000, backupCount=5)
-#handler.setFormatter(formatter)
-#logger.addHandler(handler)
 
 
 class Department(models.Model):
@@ -32,10 +27,10 @@ class Employee(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, verbose_name='ID отдела')
     replaces = models.ForeignKey('self', on_delete=models.SET_NULL, verbose_name='Замещает', default=None, blank=True,
                                  null=True)
-    # replaces = models.IntegerField(verbose_name='ID замещаемых работников')
     rating = models.FloatField(verbose_name='Рейтинг', default=0)
     entry_date = models.DateField(verbose_name='Дата начала работы', default=datetime.date.min)
     vacation_days = models.IntegerField(verbose_name='Дней отпуска', default=38)
+
 
     def __str__(self):
         return self.name

@@ -7,7 +7,7 @@
     <h2><select onChange="window.location.href=this.value">
         <option selected="selected">Все отделы</option>
         {% for department in departments %}
-            <option value="{% url 'by_department' department.pk %}">{{ department.name }}</option>
+            <option value="{% url 'vacations:by_department' department.pk %}">{{ department.name }}</option>
         {% endfor %}
     </select></h2>
     <table>
@@ -19,7 +19,7 @@
             <th class="col5">Отпуска</th>
         </tr>
         {% for employee in employees %}
-            <tr class="{% cycle 'white' 'gray' %}"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'details' employee.pk %}">{{ employee.name }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+            <tr class="{% cycle 'white' 'gray' %}"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'vacations:details' employee.pk %}">{{ employee.name }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
                 <td>
                 {% for vacation in vacations %}
                     {% if vacation.employee.pk == employee.pk %}
