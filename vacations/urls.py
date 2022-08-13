@@ -1,7 +1,7 @@
 
 from django.urls import path, include
 
-from .views import index, by_department, details, VacationCreateView, EmployeeCreateView, EmployeeUpdateView, success, \
+from .views import index, by_department, VacationCreateView, EmployeeCreateView, EmployeeUpdateView, success, \
     DepartmentCreateView, EmployeeDeleteView, DepartmentDeleteView
 
 app_name = 'vacations'

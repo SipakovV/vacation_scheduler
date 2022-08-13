@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
+from django.urls import reverse_lazy
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -143,6 +145,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGIN_REDIRECT_URL = reverse_lazy('vacations:index')
+#LOGOUT_REDIRECT_URL = reverse_lazy('accounts:login')
+LOGIN_URL = reverse_lazy('accounts:login')
+LOGOUT_URL = reverse_lazy('accounts:logout')
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/

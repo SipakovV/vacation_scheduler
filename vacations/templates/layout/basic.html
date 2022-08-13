@@ -9,7 +9,14 @@
 </head>
 <body>
     <header>
-        <h1>График отпусков<div>{% block auth %}<a href="{% url 'accounts:login' %}">Вход в систему</a>{% endblock %}</div></h1>
+        <h1>График отпусков<div>{% block auth %}
+            {% if user.is_authenticated %}
+            {{ user }}
+            <a href="{% url 'accounts:logout' %}">Выход</a>
+            {% else %}
+            <a href="{% url 'accounts:login' %}">Вход в систему</a>
+            {% endif %}
+        {% endblock %}</div></h1>
     </header>
     <nav>
         <ul>
