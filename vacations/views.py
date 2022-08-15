@@ -4,7 +4,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
 from .models import Employee, Department, Vacation
 from .forms import VacationForm, EmployeeForm, DepartmentForm
@@ -79,6 +79,17 @@ class VacationCreateView(CreateView):
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
+    def get(self, *args, **kwargs):
+        user = self.request.user
+        if user.bound_employee is not None:
+            logger.debug('User: ' + str(user.bound_employee.pk) + ' Selected: ' + str(self.kwargs['employee_id']))
+            if user.bound_employee.pk != self.kwargs['employee_id']:
+                # ++ message
+                return redirect('vacations:index')
+        else:
+            logger.debug('User: Admin')
+        return super(VacationCreateView, self).get(args, kwargs)
+
     def get_success_url(self):
         employee_id = self.kwargs['employee_id']
         #print('get_success_url employee_id = ', employee_id)
@@ -94,14 +105,6 @@ class VacationCreateView(CreateView):
         context = super().get_context_data(**kwargs)
 
         kwargs['user'] = self.request.user
-        #
-        if kwargs['user'].bound_employee is not None:
-            logger.debug('User: ' + str(kwargs['user'].bound_employee.pk) + ' Selected: ' + str(self.kwargs['employee_id']))
-            if kwargs['user'].bound_employee.pk != self.kwargs['employee_id']:
-                # ++ message
-                return redirect('vacations:index')
-        else:
-            logger.debug('User: Admin')
 
         context['employees'] = Employee.objects.all()
         context['vacations'] = Vacation.objects.all()
