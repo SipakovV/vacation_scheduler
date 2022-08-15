@@ -1,12 +1,12 @@
 {% extends "layout/basic.html" %}
 
-{% block title %}{{ employee.name }}{% endblock %}
+{% block title %}{{ employee }}{% endblock %}
 
 {% block content %}
 <section style="width = 100%">
-    <!--<h3>{{ employee.name }}: Редактирование</h3><hr>-->
+    <!--<h3>{{ employee }}: Редактирование</h3><hr>-->
     <table>
-        <tr class="blue"><th class="col_detail2" style="width = 100%">{{ employee.name }}</th></tr>
+        <tr class="blue"><th class="col_detail2" style="width = 100%">{{ employee }}</th></tr>
     </table>
     <form method="post">
         {% csrf_token %}

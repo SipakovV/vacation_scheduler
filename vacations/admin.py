@@ -6,15 +6,15 @@ from .models import Employee, Department, Vacation
 
 
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ('name', 'department', 'replaces', 'rating', 'entry_date', 'vacation_days')
-    list_display_links = ('name',)
-    search_fields = ('name', 'department')
+    list_display = ('last_name', 'first_name', 'middle_name', 'department', 'replaces', 'rating', 'entry_date', 'vacation_days')
+    list_display_links = ('last_name', 'first_name', 'middle_name',)
+    search_fields = ('last_name', 'first_name', 'middle_name', 'department')
 
 
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    list_display_links = ('name',)
-    search_fields = ('name',)
+    list_display = ('title',)
+    list_display_links = ('title',)
+    search_fields = ('title',)
 
 
 class VacationAdmin(admin.ModelAdmin):

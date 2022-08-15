@@ -24,7 +24,7 @@ class DateInput(DateInput):
 class EmployeeForm(ModelForm):
     class Meta:
         model = Employee
-        fields = ('name', 'department', 'replaces', 'entry_date', 'vacation_days')
+        fields = ('last_name', 'first_name', 'middle_name', 'department', 'replaces', 'entry_date', 'vacation_days')
         #exclude = ['rating']
 
     def __init__(self, *args, **kwargs):
@@ -35,7 +35,7 @@ class EmployeeForm(ModelForm):
 class DepartmentForm(ModelForm):
     class Meta:
         model = Department
-        fields = ('name',)
+        fields = ('title',)
 
 
 class VacationForm(ModelForm):

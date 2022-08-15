@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=50, verbose_name='Название отдела')
+    title = models.CharField(max_length=50, verbose_name='Название отдела')
 
     def __str__(self):
-        return self.name
+        return self.title
 
     class Meta:
         verbose_name_plural = 'Отделы'
@@ -22,25 +22,25 @@ class Department(models.Model):
 
 
 class Employee(models.Model):
-    name = models.CharField(max_length=50, verbose_name='ФИО')
-    #login = models.OneToOneField('users.User', verbose_name='Логин', blank=True, null=True, on_delete=models.SET_NULL)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, verbose_name='ID отдела')
+    last_name = models.CharField(max_length=100, verbose_name='Фамилия')
+    first_name = models.CharField(max_length=30, verbose_name='Имя')
+    middle_name = models.CharField(max_length=50, verbose_name='Отчество')
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, verbose_name='Отдел')
     replaces = models.ForeignKey('self', on_delete=models.SET_NULL, verbose_name='Замещает', default=None, blank=True,
                                  null=True)
     rating = models.FloatField(verbose_name='Рейтинг', default=0)
     entry_date = models.DateField(verbose_name='Дата начала работы', default=datetime.date.min)
     vacation_days = models.IntegerField(verbose_name='Дней отпуска', default=38)
 
-
     def __str__(self):
-        return self.name
+        return str(self.last_name) + ' ' + str(self.first_name) + ' ' + str(self.middle_name)
 
     def change_rating(self, diff):
         self.rating += diff
 
     def save(self, *args, **kwargs):
         super(Employee, self).save(*args, **kwargs)
-        logger.info('Employee added/edited: ' + self.name)
+        logger.info('Employee added/edited: ' + str(self))
 
     class Meta:
         verbose_name_plural = 'Работники'
@@ -95,10 +95,7 @@ class Vacation(models.Model):
         empl.save()
 
         super(Vacation, self).save(*args, **kwargs)
-        logger.error('TEST ERROR')
-        logger.warning('TEST WARNING')
-        logger.info('INFO with error word')
-        logger.info('Vacation added: ' + empl.name + ' ' + self.start.strftime('%m/%d/%Y') + '-' + self.end.strftime('%m/%d/%Y'))
+        logger.info('Vacation added: ' + str(empl) + ' ' + self.start.strftime('%m/%d/%Y') + '-' + self.end.strftime('%m/%d/%Y'))
 
     class Meta:
         verbose_name_plural = 'Отпуска'

@@ -96,9 +96,10 @@ class VacationCreateView(CreateView):
         kwargs['user'] = self.request.user
         #
         if kwargs['user'].bound_employee is not None:
-            logger.debug(str(kwargs['user'].bound_employee.pk) + str(self.kwargs['employee_id']))
+            logger.debug('User: ' + str(kwargs['user'].bound_employee.pk) + ' Selected: ' + str(self.kwargs['employee_id']))
             if kwargs['user'].bound_employee.pk != self.kwargs['employee_id']:
-                return redirect(reverse_lazy('index'))
+                # ++ message
+                return redirect('vacations:index')
         else:
             logger.debug('User: Admin')
 

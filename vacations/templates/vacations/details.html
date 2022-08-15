@@ -1,13 +1,13 @@
 {% extends "layout/basic.html" %}
 
-{% block title %}{{ employee.name }}{% endblock %}
+{% block title %}{{ employee }}{% endblock %}
 
 {% block content %}
 <section>
     <table>
         <tr class="blue">
             <th class="col_detail1">ФИО</th>
-            <th class="col_detail2">{{ employee.name }}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a></th>
+            <th class="col_detail2">{{ employee }}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a></th>
         </tr>
         <tr class="white">
             <td class="col_detail1">Отдел</td>
@@ -32,7 +32,7 @@
         <tr class="gray">
             <td class="col_detail1">Отпуска</td>
             <td>{% for vacation in vacations %}
-                {% if vacation.employee.name == employee.name %}
+                {% if vacation.employee.pk == employee.pk %}
                 {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
                 {% endif %}
             {% endfor %}</td>
