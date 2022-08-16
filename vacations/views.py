@@ -36,6 +36,14 @@ class DepartmentCreateView(CreateView):
                 return redirect('vacations:index')
         return super(DepartmentCreateView, self).get(args, kwargs)
 
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not (user.is_department_manager and user.employees_permission_level >= EDIT):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для добавления отдела')
+                return redirect('vacations:index')
+        return super(DepartmentCreateView, self).post(args, kwargs)
+
 
 class DepartmentDeleteView(DeleteView):
     template_name = 'vacations/delete_department.html'
@@ -80,6 +88,14 @@ class EmployeeCreateView(CreateView):
                 return redirect('vacations:index')
         return super(EmployeeCreateView, self).get(args, kwargs)
 
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not (user.employees_permission_level >= EDIT):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для добавления сотрудников')
+                return redirect('vacations:index')
+        return super(EmployeeCreateView, self).post(args, kwargs)
+
 
 class EmployeeUpdateView(UpdateView):
     template_name = 'vacations/edit_employee.html'
@@ -100,6 +116,15 @@ class EmployeeUpdateView(UpdateView):
                 messages.warning(self.request, 'Недостаточно прав для редактирования данных сотрудников')
                 return redirect('vacations:details', kwargs['pk'])
         return super(EmployeeUpdateView, self).get(args, kwargs)
+
+    def post(self, *args, **kwargs):
+        user = self.request.user
+
+        if not user.is_staff:
+            if not user.employees_permission_level >= EDIT:
+                messages.warning(self.request, 'Недостаточно прав для редактирования данных сотрудников')
+                return redirect('vacations:details', kwargs['pk'])
+        return super(EmployeeUpdateView, self).post(args, kwargs)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -122,6 +147,14 @@ class EmployeeDeleteView(DeleteView):
                 messages.warning(self.request, 'Недостаточно прав для удаления сотрудников')
                 return redirect('vacations:details', kwargs['employee_id'])
         return super(EmployeeDeleteView, self).get(args, kwargs)
+
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not user.employees_permission_level >= EDIT:  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для удаления сотрудников')
+                return redirect('vacations:details', kwargs['employee_id'])
+        return super(EmployeeDeleteView, self).post(args, kwargs)
 
 
 class VacationCreateView(CreateView):
