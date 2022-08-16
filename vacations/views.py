@@ -23,6 +23,14 @@ class DepartmentCreateView(CreateView):
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
+    def get(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not (False):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для добавления отдела')
+                return redirect('vacations:index')
+        return super(DepartmentCreateView, self).get(args, kwargs)
+
 
 class DepartmentDeleteView(DeleteView):
     template_name = 'vacations/delete_department.html'
@@ -33,6 +41,14 @@ class DepartmentDeleteView(DeleteView):
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
+    def get(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not (False):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для удаления отдела')
+                return redirect('vacations:index')
+        return super(DepartmentDeleteView, self).get(args, kwargs)
+
 
 class EmployeeCreateView(CreateView):
     template_name = 'vacations/add_employee.html'
@@ -42,6 +58,14 @@ class EmployeeCreateView(CreateView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not (False):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для добавления сотрудников')
+                return redirect('vacations:index')
+        return super(EmployeeCreateView, self).get(args, kwargs)
 
 
 class EmployeeUpdateView(UpdateView):
@@ -54,6 +78,15 @@ class EmployeeUpdateView(UpdateView):
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        user = self.request.user
+
+        if not user.is_staff:
+            if not (False):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для редактирования данных сотрудников')
+                return redirect('vacations:details', kwargs['pk'])
+        return super(EmployeeUpdateView, self).get(args, kwargs)
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -69,6 +102,14 @@ class EmployeeDeleteView(DeleteView):
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
 
+    def get(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not (False):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для удаления сотрудников')
+                return redirect('vacations:details', kwargs['employee_id'])
+        return super(EmployeeDeleteView, self).get(args, kwargs)
+
 
 class VacationCreateView(CreateView):
     template_name = 'vacations/details.html'
@@ -81,15 +122,21 @@ class VacationCreateView(CreateView):
 
     def get(self, *args, **kwargs):
         user = self.request.user
-        if user.bound_employee is not None:
-            #logger.debug('User: ' + str(user.bound_employee.pk) + ' Selected: ' + str(self.kwargs['employee_id']))
-            if user.bound_employee.pk != self.kwargs['employee_id']:
-                # ++ message
-
-                return redirect('vacations:index')
-        else:
-            logger.debug('User: Admin')
+        if not user.is_staff:
+            if not (False or user.bound_employee.pk == self.kwargs['employee_id'] or user.is_department_manager):  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для доступа к странице')
+                return redirect('vacations:by_department', user.bound_employee.department.pk)
         return super(VacationCreateView, self).get(args, kwargs)
+
+    '''
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not user.is_department_manager:
+                messages.warning(self.request, 'Недостаточно прав для добавления отпусков')
+                return redirect('vacations:by_department', user.bound_employee.department.pk)
+        return super(VacationCreateView, self).post(args, kwargs)
+    '''
 
     def get_success_url(self):
         employee_id = self.kwargs['employee_id']
@@ -158,7 +205,7 @@ def index(request):
     user = request.user
 
     if not (False or user.is_staff):  # ++ if not HR
-        messages.warning(request, 'Недостаточно прав для доступа к странице')
+        #messages.warning(request, 'Недостаточно прав для доступа к странице')
         return redirect('vacations:by_department', user.bound_employee.department.pk)
 
     context = {'employees': employees, 'vacations': vacations, 'departments': departments}

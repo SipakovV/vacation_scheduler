@@ -6,11 +6,22 @@ from .managers import CustomUserManager
 
 
 class CustomUser(AbstractUser):
+    DEFAULT = 0
+    VIEW = 1
+    EDIT = 2
+    PERMISSIONS_CHOICES = (
+        (DEFAULT, 'Нет специальных прав'),
+        (VIEW, 'Просмотр данных'),
+        (EDIT, 'Просмотр и изменение данных'),
+    )
+
     first_name = None
     last_name = None
-    department_manager = models.BooleanField(verbose_name='Является начальником отдела', default=False)
+    is_department_manager = models.BooleanField(verbose_name='Является начальником отдела (может изменять отпуска)', default=False)
     bound_employee = models.OneToOneField('vacations.Employee', verbose_name='Привязанный сотрудник', blank=True, null=True, on_delete=models.SET_NULL)
-    # department =
+    employees_permission_level = models.SmallIntegerField(verbose_name='Права на взаимодействие с данными сотрудников', choices=PERMISSIONS_CHOICES, default=DEFAULT)
+    # = models.BooleanField(verbose_name='Может изменять данные сотрудников', default=False)
+    #can_view_employees = models.BooleanField(verbose_name='Может просматривать данные сотрудников', default=False)
 
     objects = CustomUserManager()
 
