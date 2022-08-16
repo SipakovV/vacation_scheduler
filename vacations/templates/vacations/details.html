@@ -7,7 +7,7 @@
     <table>
         <tr class="blue">
             <th class="col_detail1">ФИО</th>
-            <th class="col_detail2">{{ employee }}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a></th>
+            <th class="col_detail2">{{ employee }}{% if user.employees_permission_level >= EDIT %}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a>{% endif %}</th>
         </tr>
         <tr class="white">
             <td class="col_detail1">Отдел</td>
@@ -37,6 +37,7 @@
                 {% endif %}
             {% endfor %}</td>
         </tr>
+        {% if user.is_department_manager %}
         <tr class="white">
             <td class="col_detail1">Добавить отпуск</td>
             <td><form method="post">
@@ -45,6 +46,7 @@
                 <input type="submit" class="button" value="Добавить">
             </form></td>
         </tr>
+        {% endif %}
     </table>
     <!--
     <form method="post" action="/vacations/add/" name="Добавить отпуск">

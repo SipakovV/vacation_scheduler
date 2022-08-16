@@ -11,7 +11,11 @@
     <header>
         <h1>График отпусков<div>{% block auth %}
             {% if user.is_authenticated %}
+            {% if user.bound_employee is not None %}
+            <a href="{% url 'vacations:details' user.bound_employee.pk %}">{{ user }}</a>
+            {% else %}
             {{ user }}
+            {% endif %}
             <a href="{% url 'accounts:logout' %}">Выход</a>
             {% else %}
             <a href="{% url 'accounts:login' %}">Вход в систему</a>
@@ -21,9 +25,9 @@
     <nav>
         <ul>
             <li><a {% block index %}{% endblock %} href="{% url 'vacations:index' %}">Главная</a></li>
-            <li><a {% block add_employee %}{% endblock %} href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>
-            <li><a {% block add_department %}{% endblock %} href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>
-            <li><a href="http://192.168.0.26:8000/admin">Администратор</a></li>
+            {% if user.employees_permission_level >= EDIT %}<li><a {% block add_employee %}{% endblock %} href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>{% endif %}
+            {% if user.employees_permission_level >= EDIT and user.is_department_manager %}<li><a {% block add_department %}{% endblock %} href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>{% endif %}
+            {% if user.is_staff %}<li><a href="http://192.168.0.26:8000/admin">Панель администратора</a></li>{% endif %}
         </ul>
     </nav>
     {% for message in messages %}

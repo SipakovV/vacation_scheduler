@@ -203,8 +203,6 @@ class VacationCreateView(CreateView):
         context['departments'] = Department.objects.all()
 
         context['employee'] = Employee.objects.get(pk=int(self.kwargs['employee_id']))
-        empl = self.kwargs['employee_id']
-        #print('CreateView.initial = ', self.initial)
 
         return context
 
@@ -219,9 +217,9 @@ def by_department(request, department_id):
     user = request.user
 
     if not user.is_staff:
-        if not (user.employees_permission_level >= VIEW or user.bound_employee.department.pk == department_id):
-            messages.warning(request, 'Недостаточно прав для доступа к странице')
-            return redirect('vacations:by_department', user.bound_employee.department.pk)
+        if not (user.employees_permission_level >= VIEW or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
+            #messages.warning(request, 'Недостаточно прав для доступа к странице')
+            return redirect('vacations:details', user.bound_employee.pk)
 
     context = {'employees': employees, 'departments': departments, 'vacations': vacations,
                'current_department': current_department}
