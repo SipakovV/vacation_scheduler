@@ -45,7 +45,7 @@ class Employee(models.Model):
     class Meta:
         verbose_name_plural = 'Работники'
         verbose_name = 'Работник'
-        ordering = ['-rating']
+        ordering = ['department', '-rating']
 
 
 class Vacation(models.Model):

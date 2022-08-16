@@ -4,11 +4,12 @@ from .managers import CustomUserManager
 
 # Create your models here.
 
+DEFAULT = 0
+VIEW = 1
+EDIT = 2
+
 
 class CustomUser(AbstractUser):
-    DEFAULT = 0
-    VIEW = 1
-    EDIT = 2
     PERMISSIONS_CHOICES = (
         (DEFAULT, 'Нет специальных прав'),
         (VIEW, 'Просмотр данных'),
