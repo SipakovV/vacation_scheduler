@@ -82,9 +82,10 @@ class VacationCreateView(CreateView):
     def get(self, *args, **kwargs):
         user = self.request.user
         if user.bound_employee is not None:
-            logger.debug('User: ' + str(user.bound_employee.pk) + ' Selected: ' + str(self.kwargs['employee_id']))
+            #logger.debug('User: ' + str(user.bound_employee.pk) + ' Selected: ' + str(self.kwargs['employee_id']))
             if user.bound_employee.pk != self.kwargs['employee_id']:
                 # ++ message
+
                 return redirect('vacations:index')
         else:
             logger.debug('User: Admin')
@@ -123,6 +124,13 @@ def by_department(request, department_id):
     vacations = Vacation.objects.all()
     departments = Department.objects.all()
     current_department = Department.objects.get(pk=department_id)
+
+    user = request.user
+
+    if not (user.is_staff or user.bound_employee.department.pk == department_id):  # ++ if not HR
+        messages.warning(request, 'Недостаточно прав для доступа к странице')
+        return redirect('vacations:by_department', user.bound_employee.department.pk)
+
     context = {'employees': employees, 'departments': departments, 'vacations': vacations,
                'current_department': current_department}
     return render(request, 'vacations/by_department.html', context)
@@ -146,6 +154,12 @@ def index(request):
     employees = Employee.objects.all()
     vacations = Vacation.objects.all()
     departments = Department.objects.all()
+
+    user = request.user
+
+    if not (False or user.is_staff):  # ++ if not HR
+        messages.warning(request, 'Недостаточно прав для доступа к странице')
+        return redirect('vacations:by_department', user.bound_employee.department.pk)
 
     context = {'employees': employees, 'vacations': vacations, 'departments': departments}
     return render(request, 'vacations/index.html', context)
