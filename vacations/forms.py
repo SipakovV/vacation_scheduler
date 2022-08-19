@@ -73,6 +73,8 @@ class VacationForm(ModelForm):
             replaced_empl = Employee.objects.get(pk=employee.replaces.pk)
             replaced_vacations = Vacation.objects.filter(employee=replaced_empl.pk)
 
+        #own_vacations = Vacation.objects.filter(employee=employee.pk)
+
         delta = datetime.timedelta(days=1)
         cur_date = start
         diff = 0
@@ -90,6 +92,7 @@ class VacationForm(ModelForm):
         if start and end:
             if start >= end:
                 raise ValidationError('Неправильный период!')
+            #for vacation in
             if employee.replaces is not None:
                 for vacation in replaced_vacations:
                     if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and end <= vacation.end:

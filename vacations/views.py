@@ -1,4 +1,6 @@
+from datetime import date
 import logging
+from calendar import monthrange
 
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.decorators import method_decorator
@@ -213,6 +215,7 @@ def by_department(request, department_id):
     vacations = Vacation.objects.all()
     departments = Department.objects.all()
     current_department = Department.objects.get(pk=department_id)
+    vacation_days_by_month = []
 
     user = request.user
 
@@ -221,8 +224,13 @@ def by_department(request, department_id):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
+    employee_days_coef = employees.count() / 12
+    current_year = date.today().year
+    for month in range(1, 13):
+        vacation_days_by_month.append(employee_days_coef * monthrange(current_year, month)[1])
+
     context = {'employees': employees, 'departments': departments, 'vacations': vacations,
-               'current_department': current_department}
+               'current_department': current_department, 'vacation_days_by_month': vacation_days_by_month}
     return render(request, 'vacations/by_department.html', context)
 
 

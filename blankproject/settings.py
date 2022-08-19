@@ -79,6 +79,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    'django.contrib.humanize',
+
     'vacations.apps.VacationsConfig',
     'users.apps.UsersConfig',
 ]

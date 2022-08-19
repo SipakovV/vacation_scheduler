@@ -13,8 +13,27 @@ logger = logging.getLogger(__name__)
 class Department(models.Model):
     title = models.CharField(max_length=50, verbose_name='Название отдела')
 
+    '''
+    jan = models.FloatField(verbose_name='Человеко-дней в январе', default=0)
+    feb = models.FloatField(verbose_name='Человеко-дней в феврале', default=0)
+    mar = models.FloatField(verbose_name='Человеко-дней в марте', default=0)
+    apr = models.FloatField(verbose_name='Человеко-дней в апреле', default=0)
+    may = models.FloatField(verbose_name='Человеко-дней в мае', default=0)
+    jun = models.FloatField(verbose_name='Человеко-дней в июне', default=0)
+    jul = models.FloatField(verbose_name='Человеко-дней в июле', default=0)
+    aug = models.FloatField(verbose_name='Человеко-дней в августе', default=0)
+    sep = models.FloatField(verbose_name='Человеко-дней в сентябре', default=0)
+    oct = models.FloatField(verbose_name='Человеко-дней в октябре', default=0)
+    nov = models.FloatField(verbose_name='Человеко-дней в ноябре', default=0)
+    dec = models.FloatField(verbose_name='Человеко-дней в декабре', default=0)
+    '''
+
     def __str__(self):
         return self.title
+
+    #def check_vacation_days(self, start, end):
+
+
 
     class Meta:
         verbose_name_plural = 'Отделы'
