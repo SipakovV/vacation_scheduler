@@ -57,7 +57,6 @@ class VacationForm(ModelForm):
         start = cleaned_data.get('start')
         end = cleaned_data.get('end')
         employee = cleaned_data.get('employee')
-        #employee = Employee.objects.get(pk=employee_pk.pk)
         logger.debug(('clean ', employee))
         entry_anniversary = employee.entry_date
         new_year = datetime.date.today().year
@@ -68,12 +67,9 @@ class VacationForm(ModelForm):
             relevant_flag = True
         else:
             relevant_flag = False
-            
-        if employee.replaces is not None:
-            replaced_empl = Employee.objects.get(pk=employee.replaces.pk)
-            replaced_vacations = Vacation.objects.filter(employee=replaced_empl.pk)
 
-        #own_vacations = Vacation.objects.filter(employee=employee.pk)
+
+        own_vacations = Vacation.objects.filter(employee=employee.pk)
 
         delta = datetime.timedelta(days=1)
         cur_date = start
@@ -92,8 +88,12 @@ class VacationForm(ModelForm):
         if start and end:
             if start >= end:
                 raise ValidationError('Неправильный период!')
-            #for vacation in
+            for vacation in own_vacations:
+                if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and end <= vacation.end:
+                    raise ValidationError('Заданный отпуск пересекается с уже имеющимся отпуском!')
             if employee.replaces is not None:
+                replaced_empl = Employee.objects.get(pk=employee.replaces.pk)
+                replaced_vacations = Vacation.objects.filter(employee=replaced_empl.pk)
                 for vacation in replaced_vacations:
                     if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and end <= vacation.end:
                         raise ValidationError('Замещаемый работник уже имеет отпуск в этот период!')
