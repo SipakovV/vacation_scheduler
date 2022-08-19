@@ -37,7 +37,7 @@
                 {% endif %}
             {% endfor %}</td>
         </tr>
-        {% if user.is_department_manager %}
+        {% if user.is_department_manager or user.is_staff %}
         <tr class="white">
             <td class="col_detail1">Добавить отпуск</td>
             <td><form method="post">
