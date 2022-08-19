@@ -34,7 +34,7 @@
             <tr>
                 {% load humanize %}
                 {% for num in vacation_days_by_month %}
-                    <th>{{ num|floatformat:2 }}</th>
+                    <th>{{ num }}</th>
                 {% endfor %}
             </tr>
         </table>

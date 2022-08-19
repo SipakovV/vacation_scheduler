@@ -1,11 +1,13 @@
 import datetime
 import logging
+import copy
 from logging.handlers import RotatingFileHandler
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
 from django.db import models
 from django.db.models.functions import ExtractMonth
+from django.contrib.postgres.fields import ArrayField
 
 logger = logging.getLogger(__name__)
 
@@ -13,27 +15,52 @@ logger = logging.getLogger(__name__)
 class Department(models.Model):
     title = models.CharField(max_length=50, verbose_name='Название отдела')
 
-    '''
-    jan = models.FloatField(verbose_name='Человеко-дней в январе', default=0)
-    feb = models.FloatField(verbose_name='Человеко-дней в феврале', default=0)
-    mar = models.FloatField(verbose_name='Человеко-дней в марте', default=0)
-    apr = models.FloatField(verbose_name='Человеко-дней в апреле', default=0)
-    may = models.FloatField(verbose_name='Человеко-дней в мае', default=0)
-    jun = models.FloatField(verbose_name='Человеко-дней в июне', default=0)
-    jul = models.FloatField(verbose_name='Человеко-дней в июле', default=0)
-    aug = models.FloatField(verbose_name='Человеко-дней в августе', default=0)
-    sep = models.FloatField(verbose_name='Человеко-дней в сентябре', default=0)
-    oct = models.FloatField(verbose_name='Человеко-дней в октябре', default=0)
-    nov = models.FloatField(verbose_name='Человеко-дней в ноябре', default=0)
-    dec = models.FloatField(verbose_name='Человеко-дней в декабре', default=0)
-    '''
+    vacation_days_by_month = ArrayField(
+        models.IntegerField(default=0),
+        size=12,
+        default=list,
+    )
 
     def __str__(self):
         return self.title
 
-    #def check_vacation_days(self, start, end):
+    def test_vacation_days(self):
+        for i in range(12):
+            self.vacation_days_by_month[i] = i*3
+            logger.debug(self.vacation_days_by_month[i])
 
+    def check_vacation_days(self, start, end):
+        cur_date = start
+        delta = datetime.timedelta(days=1)
+        cur_month = 0
+        test_days = 0
+        #test_days = self.vacation_days_by_month.copy()
+        while cur_date <= end:
+            #logger.debug('cur_date=' + str(cur_date))
+            if cur_date.isoweekday() <= 5:
+                if cur_month != cur_date.month:
+                    cur_month = cur_date.month
+                    #logger.debug('cur_month=' + str(cur_month))
+                    test_days = copy.copy(self.vacation_days_by_month[cur_month-1])
+                if test_days < 0:
+                    return False
+                test_days -= 1
+                #logger.debug('test_days=' + str(test_days) + ' ' + str(type(test_days)))
+            cur_date += delta
+        return True
 
+    def change_vacation_days(self, start, end):
+        cur_date = start
+        delta = datetime.timedelta(days=1)
+        cur_month = 0
+        logger.debug('feb_days_init=' + str(self.vacation_days_by_month[cur_month - 1]))
+        while cur_date <= end:
+            if cur_date.isoweekday() <= 5:
+                cur_month = cur_date.month
+                self.vacation_days_by_month[cur_month-1] -= 1
+                logger.debug('feb_days=' + str(self.vacation_days_by_month[cur_month-1]))
+            cur_date += delta
+        self.save()
 
     class Meta:
         verbose_name_plural = 'Отделы'

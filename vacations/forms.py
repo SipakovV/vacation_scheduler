@@ -98,6 +98,12 @@ class VacationForm(ModelForm):
                     if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and end <= vacation.end:
                         raise ValidationError('Замещаемый работник уже имеет отпуск в этот период!')
 
+        vacation_days_valid = employee.department.check_vacation_days(start, end)
+        logger.debug(vacation_days_valid)
+        if vacation_days_valid:
+            employee.department.change_vacation_days(start, end)
+        else:
+            raise ValidationError('Недостаточно отпускных дней в месяце!')
         # Always return the cleaned data, whether you have changed it or not.
         return cleaned_data
 
