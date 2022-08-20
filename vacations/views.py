@@ -257,15 +257,43 @@ def by_department(request, department_id):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
-    #employee_days_coef = employees.count() / 12
-    #current_year = date.today().year
-    #for month in range(1, 13):
-    #    vacation_days_by_month.append(employee_days_coef * monthrange(current_year, month)[1])
+
 
     context = {'employees': employees, 'departments': departments, 'vacations': vacations,
                'current_department': current_department, 'vacation_days_by_month': vacation_days_by_month}
     return render(request, 'vacations/by_department.html', context)
 
+
+@login_required
+def recalculate_department(request, department_id):
+    employees = Employee.objects.filter(department=department_id)
+    vacations = Vacation.objects.all()
+    departments = Department.objects.all()
+    current_department = Department.objects.get(pk=department_id)
+    vacation_days_by_month = current_department.vacation_days_by_month
+
+    user = request.user
+
+    if not user.is_staff:
+        if not (user.employees_permission_level >= VIEW or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
+            #messages.warning(request, 'Недостаточно прав для доступа к странице')
+            return redirect('vacations:details', user.bound_employee.pk)
+
+    employee_days_coef = employees.count() / 12
+    current_year = date.today().year
+    for month in range(1, 13):
+        vacation_days_by_month[month-1] = round(employee_days_coef * monthrange(current_year, month)[1])
+
+    for employee in employees:
+        employee.reset_rating()
+        logger.debug(employee.rating)
+
+    for vacation in vacations:
+        if vacation.employee in employees:
+            current_department.change_vacation_days(vacation.start, vacation.end)
+            vacation.change_values()
+
+    return redirect('vacations:by_department', department_id)
 
 '''
 @login_required

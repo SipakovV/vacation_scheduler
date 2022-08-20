@@ -11,6 +11,22 @@ from django.contrib.postgres.fields import ArrayField
 
 logger = logging.getLogger(__name__)
 
+NEW_YEAR_DAY = 7
+RATING_COEF = {
+    1: 11,
+    2: 12,
+    3: 9,
+    4: 7,
+    5: 5,
+    6: 3,
+    7: 1,
+    8: 2,
+    9: 4,
+    10: 6,
+    11: 8,
+    12: 10,
+}
+
 
 class Department(models.Model):
     title = models.CharField(max_length=50, verbose_name='Название отдела')
@@ -83,6 +99,11 @@ class Employee(models.Model):
 
     def change_rating(self, diff):
         self.rating += diff
+        self.save()
+
+    def reset_rating(self):
+        self.rating = 0
+        self.save()
 
     def save(self, *args, **kwargs):
         super(Employee, self).save(*args, **kwargs)
@@ -102,46 +123,46 @@ class Vacation(models.Model):
     def __str__(self):
         return str(self.start) + '-' + str(self.end) + ' (' + str(self.employee) + ')'
 
-    def save(self, *args, **kwargs):
-        empl = Employee.objects.get(pk=self.employee.pk)
-        entry_anniversary = empl.entry_date
-        new_year = datetime.date.today().year
-        entry_anniversary = entry_anniversary.replace(year=new_year)
-        if entry_anniversary > datetime.date.today():
-            entry_anniversary = entry_anniversary.replace(year=new_year-1)
-        if self.start > entry_anniversary:
-            relevant_flag = True
-        else:
-            relevant_flag = False
+    def is_relevant(self):
+        relevant_flag = False
+        current_year = datetime.date.today().year
 
-        rating_coef = {
-            1: 11,
-            2: 12,
-            3: 9,
-            4: 7,
-            5: 5,
-            6: 3,
-            7: 1,
-            8: 2,
-            9: 4,
-            10: 6,
-            11: 8,
-            12: 10,
-        }
+        relevance_date = datetime.date.today().replace(year=current_year - 3)
+        # entry_anniversary = entry_anniversary.replace(year=current_year)
+        # if entry_anniversary > datetime.date.today():
+        #    entry_anniversary = entry_anniversary.replace(year=current_year-1)
+
+        if getattr(self, 'start') > relevance_date:
+            relevant_flag = True
+
+        return relevant_flag
+
+    def change_values(self):
+
+
+        empl = Employee.objects.get(pk=self.employee.pk)
+        # entry_anniversary = empl.entry_date
+
+        relevant_flag = self.is_relevant()
 
         delta = datetime.timedelta(days=1)
-        cur_date = self.start
+        cur_date = getattr(self, 'start')
         diff = 0
 
-        while cur_date <= self.end:
+        while cur_date <= getattr(self, 'end'):
             if cur_date.isoweekday() <= 5:
                 if relevant_flag:
                     empl.vacation_days -= 1
-                diff += rating_coef[cur_date.month]
+                diff += RATING_COEF[cur_date.month]
             cur_date += delta
 
         empl.change_rating(diff)
         empl.save()
+
+    def save(self, *args, **kwargs):
+        empl = Employee.objects.get(pk=self.employee.pk)
+
+        self.change_values()
 
         super(Vacation, self).save(*args, **kwargs)
         logger.info('Vacation added: ' + str(empl) + ' ' + self.start.strftime('%m/%d/%Y') + '-' + self.end.strftime('%m/%d/%Y'))

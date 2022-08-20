@@ -13,7 +13,7 @@
                 <option {% if department == current_department %} selected="selected" {% endif %} value="{% url 'vacations:by_department' department.pk %}">{{ department }}</option>
             {% endfor %}
         </select>
-        <button>Пересчитать рейтинг</button>
+        <a href="{% url 'vacations:recalculate_department' current_department.pk %}"><button>Пересчитать рейтинг</button></a>
     </h2>
     <div>
         <table>
