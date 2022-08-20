@@ -137,6 +137,7 @@ class EmployeeUpdateView(UpdateView):
 class EmployeeDeleteView(DeleteView):
     template_name = 'vacations/delete_employee.html'
     model = Employee
+    success_url = reverse_lazy('vacations:add_employee')
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):

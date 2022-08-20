@@ -31,6 +31,11 @@ class EmployeeForm(ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["entry_date"].widget = DateInput(format='%d-%m-%Y')
 
+        for name in self.fields.keys():
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control',
+            })
+
 
 class DepartmentForm(ModelForm):
     class Meta:
@@ -67,7 +72,6 @@ class VacationForm(ModelForm):
             relevant_flag = True
         else:
             relevant_flag = False
-
 
         own_vacations = Vacation.objects.filter(employee=employee.pk)
 

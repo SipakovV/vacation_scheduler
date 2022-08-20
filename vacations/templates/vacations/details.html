@@ -7,7 +7,8 @@
     <table>
         <tr class="blue">
             <th class="col_detail1">ФИО</th>
-            <th class="col_detail2">{{ employee }}{% if user.employees_permission_level >= EDIT %}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a>{% endif %}</th>
+            <th class="col_detail2">{{ employee }}{% if user.employees_permission_level >= EDIT or user.is_staff %}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a><a href="{% url 'vacations:employee_delete_form' employee.pk %}"><button class="button deletebutton">Удалить сотрудника</button></a>{% endif %}</th>
+
         </tr>
         <tr class="white">
             <td class="col_detail1">Отдел</td>
