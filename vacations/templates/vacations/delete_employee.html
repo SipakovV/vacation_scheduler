@@ -4,10 +4,9 @@
 
 {% block content %}
 <section>
-
-        <h1>Delete post</h1>
+    <h1>Удалить сотрудника</h1>
     <form action="" method="post">{% csrf_token %}
-      <p>Are you sure you want to delete "{{ employee }}"?</p>
+      <p>Вы уверены, что хотите удалить сотрудника "{{ employee }}"?</p>
       <input type="submit" value="Confirm" />
     </form>
 </section>

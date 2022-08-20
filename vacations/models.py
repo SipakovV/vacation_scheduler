@@ -99,6 +99,9 @@ class Vacation(models.Model):
     start = models.DateField(verbose_name='Начало отпуска')
     end = models.DateField(verbose_name='Конец отпуска')
 
+    def __str__(self):
+        return str(self.start) + '-' + str(self.end) + ' (' + str(self.employee) + ')'
+
     def save(self, *args, **kwargs):
         empl = Employee.objects.get(pk=self.employee.pk)
         entry_anniversary = empl.entry_date

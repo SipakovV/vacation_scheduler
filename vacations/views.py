@@ -137,7 +137,7 @@ class EmployeeUpdateView(UpdateView):
 class EmployeeDeleteView(DeleteView):
     template_name = 'vacations/delete_employee.html'
     model = Employee
-    success_url = reverse_lazy('vacations:add_employee')
+    success_url = reverse_lazy('vacations:index')
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -208,6 +208,36 @@ class VacationCreateView(CreateView):
         context['employee'] = Employee.objects.get(pk=int(self.kwargs['employee_id']))
 
         return context
+
+
+class VacationDeleteView(DeleteView):
+    template_name = 'vacations/delete_vacation.html'
+    model = Vacation
+    success_url = reverse_lazy('vacations:index')
+    #success_url = reverse_lazy('vacations:details', kwargs={'employee_id': instance.id})
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not user.employees_permission_level >= EDIT:  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для удаления отпусков')
+                return redirect('vacations:details', kwargs['employee_id'])
+        return super(VacationDeleteView, self).get(args, kwargs)
+
+    def post(self, *args, **kwargs):
+        user = self.request.user
+        if not user.is_staff:
+            if not user.employees_permission_level >= EDIT:  # ++ if not HR
+                messages.warning(self.request, 'Недостаточно прав для удаления отпусков')
+                return redirect('vacations:details', kwargs['employee_id'])
+        return super(VacationDeleteView, self).post(args, kwargs)
+
+    #def get_success_url(self):
+    #    return reverse_lazy('vacations:details', kwargs={'employee_id': self.kwargs['employee_id']})
 
 
 @login_required

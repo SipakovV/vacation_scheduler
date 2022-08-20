@@ -1,0 +1,13 @@
+{% extends "layout/basic.html" %}
+
+{% block title %}Удаление отпуска{% endblock %}
+
+{% block content %}
+<section>
+    <h1>Удалить отпуск</h1>
+    <form action="" method="post">{% csrf_token %}
+      <p>Вы уверены, что хотите удалить отпуск {{ vacation.start|date:"SHORT_DATE_FORMAT" }}-{{ vacation.end|date:"SHORT_DATE_FORMAT" }} ({{ vacation.employee }})?</p>
+      <input type="submit" value="Confirm" />
+    </form>
+</section>
+{% endblock %}
