@@ -237,6 +237,12 @@ class VacationDeleteView(DeleteView):
                 return redirect('vacations:details', kwargs['employee_id'])
         return super(VacationDeleteView, self).post(args, kwargs)
 
+    def form_valid(self, *args, **kwargs):
+        logger.debug('DeleteView.form_valid()')
+        self.object = self.get_object()
+        self.object.change_values(reverse=True)
+        return super(VacationDeleteView, self).form_valid(*args, **kwargs)
+
     #def get_success_url(self):
     #    return reverse_lazy('vacations:details', kwargs={'employee_id': self.kwargs['employee_id']})
 
@@ -285,9 +291,13 @@ def recalculate_department(request, department_id):
     for month in range(1, 13):
         vacation_days_by_month[month-1] = round(employee_days_coef * monthrange(current_year, month)[1])
 
+    current_department.save()
+
     for employee in employees:
         employee.reset_rating()
+        employee.reset_vacation_days()
         logger.debug(employee.rating)
+        employee.save()
 
     for vacation in vacations:
         if vacation.employee in employees:
@@ -316,7 +326,6 @@ def index(request):
     departments = Department.objects.all()
 
     user = request.user
-
 
     if not (user.employees_permission_level >= VIEW or user.is_staff):  # ++ if not HR
         #messages.warning(request, 'Недостаточно прав для доступа к странице')

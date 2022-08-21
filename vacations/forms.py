@@ -1,9 +1,10 @@
-from django.forms import ModelForm, SelectDateWidget, DateInput, Form, HiddenInput, forms
-from django.contrib.admin.widgets import AdminDateWidget
+
 import datetime
 import logging
-from logging.handlers import RotatingFileHandler
+import copy
 
+from django.forms import ModelForm, SelectDateWidget, DateInput, Form, HiddenInput, forms
+from django.contrib.admin.widgets import AdminDateWidget
 from django.core.exceptions import ValidationError, NON_FIELD_ERRORS
 from django.forms.fields import DateField, IntegerField, BooleanField
 
@@ -79,15 +80,21 @@ class VacationForm(ModelForm):
             return cleaned_data
 
         logger.debug(('clean ', employee))
-        entry_anniversary = employee.entry_date
-        new_year = datetime.date.today().year
-        entry_anniversary = entry_anniversary.replace(year=new_year)
-        if entry_anniversary > datetime.date.today():
-            entry_anniversary = entry_anniversary.replace(year=new_year-1)
-        if start > entry_anniversary:
+
+        relevant_flag = False
+        current_year_flag = False
+        current_year = datetime.date.today().year
+
+        relevance_date = datetime.date.today().replace(year=current_year - 3)
+        # entry_anniversary = entry_anniversary.replace(year=current_year)
+        # if entry_anniversary > datetime.date.today():
+        #    entry_anniversary = entry_anniversary.replace(year=current_year-1)
+
+        if start > relevance_date:
             relevant_flag = True
-        else:
-            relevant_flag = False
+
+        if start.year == current_year:
+            current_year_flag = True
 
         own_vacations = Vacation.objects.filter(employee=employee.pk)
 
@@ -95,7 +102,7 @@ class VacationForm(ModelForm):
         cur_date = start
         diff = 0
 
-        vacation_days = employee.vacation_days
+        vacation_days = copy.copy(employee.vacation_days)
 
         # validation flags
         vacation_days_flag = False
@@ -111,7 +118,7 @@ class VacationForm(ModelForm):
 
             while cur_date <= end:
                 if cur_date.isoweekday() <= 5:
-                    if relevant_flag:
+                    if current_year_flag:
                         vacation_days -= 1
                         if vacation_days < 0:
                             vacation_days_flag = True
@@ -119,7 +126,8 @@ class VacationForm(ModelForm):
                 cur_date += delta
 
             for vacation in own_vacations:
-                if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and end <= vacation.end:
+                if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and \
+                        end <= vacation.end:
                     intersection_flag = True
                     #raise ValidationError('Заданный отпуск пересекается с уже имеющимся отпуском!')
 
@@ -127,22 +135,19 @@ class VacationForm(ModelForm):
                 replaced_empl = Employee.objects.get(pk=employee.replaces.pk)
                 replaced_vacations = Vacation.objects.filter(employee=replaced_empl.pk)
                 for vacation in replaced_vacations:
-                    if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and end <= vacation.end:
+                    if start <= vacation.end <= end or start <= vacation.start <= end or start >= vacation.start and \
+                            end <= vacation.end:
                         replaced_employee_flag = True
                         #raise ValidationError('Замещаемый работник уже имеет отпуск в этот период!')
 
-        vacation_days_valid = employee.department.check_vacation_days(start, end)
-        logger.debug(vacation_days_valid)
-        if vacation_days_valid:
-            employee.department.change_vacation_days(start, end)
-        else:
-            month_vacation_days_flag = True
-            #raise ValidationError('Недостаточно отпускных дней в месяце!')
-        # Always return the cleaned data, whether you have changed it or not.
+        if current_year_flag:
+            vacation_days_valid = employee.department.check_vacation_days(start, end)
+            if not vacation_days_valid:
+                #employee.department.change_vacation_days(start, end)
+                month_vacation_days_flag = True
+                #raise ValidationError('Недостаточно отпускных дней в месяце!'
 
         errors_list = []
-
-
 
         if vacation_days_flag:
             errors_list.append(ValidationError(self.fields['end'].error_messages['vacation_days']))

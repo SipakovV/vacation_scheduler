@@ -65,16 +65,19 @@ class Department(models.Model):
             cur_date += delta
         return True
 
-    def change_vacation_days(self, start, end):
+    def change_vacation_days(self, start, end, reverse=False):
         cur_date = start
         delta = datetime.timedelta(days=1)
         cur_month = 0
-        logger.debug('feb_days_init=' + str(self.vacation_days_by_month[cur_month - 1]))
+        #logger.debug('feb_days_init=' + str(self.vacation_days_by_month[cur_month - 1]))
         while cur_date <= end:
             if cur_date.isoweekday() <= 5:
                 cur_month = cur_date.month
-                self.vacation_days_by_month[cur_month-1] -= 1
-                logger.debug('feb_days=' + str(self.vacation_days_by_month[cur_month-1]))
+                if reverse:
+                    self.vacation_days_by_month[cur_month-1] += 1
+                else:
+                    self.vacation_days_by_month[cur_month-1] -= 1
+                #logger.debug('feb_days=' + str(self.vacation_days_by_month[cur_month-1]))
             cur_date += delta
         self.save()
 
@@ -97,13 +100,25 @@ class Employee(models.Model):
     def __str__(self):
         return str(self.last_name) + ' ' + str(self.first_name) + ' ' + str(self.middle_name)
 
+    def change_vacation_days(self, start, end, reverse=False):
+        cur_date = start
+        delta = datetime.timedelta(days=1)
+        while cur_date <= end:
+            if cur_date.isoweekday() <= 5:
+                if reverse:
+                    self.vacation_days += 1
+                else:
+                    self.vacation_days -= 1
+            cur_date += delta
+
     def change_rating(self, diff):
         self.rating += diff
-        self.save()
 
     def reset_rating(self):
         self.rating = 0
-        self.save()
+
+    def reset_vacation_days(self):
+        self.vacation_days = 38
 
     def save(self, *args, **kwargs):
         super(Employee, self).save(*args, **kwargs)
@@ -123,6 +138,15 @@ class Vacation(models.Model):
     def __str__(self):
         return str(self.start) + '-' + str(self.end) + ' (' + str(self.employee) + ')'
 
+    def is_current_year(self):
+        current_year = datetime.date.today().year
+        vacation_year = getattr(self, 'start').year
+
+        if vacation_year == current_year:
+            return True
+        else:
+            return False
+
     def is_relevant(self):
         relevant_flag = False
         current_year = datetime.date.today().year
@@ -137,32 +161,40 @@ class Vacation(models.Model):
 
         return relevant_flag
 
-    def change_values(self):
-
-
+    def change_values(self, reverse=False):
         empl = Employee.objects.get(pk=self.employee.pk)
+        start = getattr(self, 'start')
+        end = getattr(self, 'end')
+
+        logger.debug('change_values call')
         # entry_anniversary = empl.entry_date
 
-        relevant_flag = self.is_relevant()
-
         delta = datetime.timedelta(days=1)
-        cur_date = getattr(self, 'start')
+        cur_date = start
         diff = 0
 
-        while cur_date <= getattr(self, 'end'):
+        while cur_date <= end:
             if cur_date.isoweekday() <= 5:
-                if relevant_flag:
-                    empl.vacation_days -= 1
+                #empl.vacation_days -= 1
                 diff += RATING_COEF[cur_date.month]
             cur_date += delta
 
-        empl.change_rating(diff)
+        if reverse:
+            empl.change_rating(-diff)
+        else:
+            empl.change_rating(diff)
+
+        if self.is_current_year():
+            empl.department.change_vacation_days(start, end, reverse)
+            empl.change_vacation_days(start, end, reverse)
+
         empl.save()
 
     def save(self, *args, **kwargs):
         empl = Employee.objects.get(pk=self.employee.pk)
 
-        self.change_values()
+        if self.is_relevant():
+            self.change_values()
 
         super(Vacation, self).save(*args, **kwargs)
         logger.info('Vacation added: ' + str(empl) + ' ' + self.start.strftime('%m/%d/%Y') + '-' + self.end.strftime('%m/%d/%Y'))
