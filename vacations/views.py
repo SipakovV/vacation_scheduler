@@ -201,11 +201,12 @@ class VacationCreateView(CreateView):
 
         kwargs['user'] = self.request.user
 
+        employee = Employee.objects.get(pk=int(self.kwargs['employee_id']))
+        context['employee'] = employee
         context['employees'] = Employee.objects.all()
         context['vacations'] = Vacation.objects.all()
         context['departments'] = Department.objects.all()
-
-        context['employee'] = Employee.objects.get(pk=int(self.kwargs['employee_id']))
+        context['vacation_days_by_month'] = employee.department.vacation_days_by_month
 
         return context
 
