@@ -14,6 +14,7 @@
             {% endfor %}
         </select>
         <a href="{% url 'vacations:recalculate_department' current_department.pk %}"><button>Пересчитать рейтинг</button></a>
+        <a href="{% url 'vacations:export_t7' current_department.pk %}"><button>Экспорт формы Т-7</button></a>
     </h2>
     <div>
         <table>
