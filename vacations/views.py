@@ -1,6 +1,5 @@
 import datetime
 import logging
-from calendar import monthrange
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.writer.excel import save_virtual_workbook
@@ -12,8 +11,9 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.utils.encoding import escape_uri_path
 
-from .models import Employee, Department, Vacation
+from .models import Employee, Department, Vacation, ARCHIVE, RELEVANT, PLANNED
 from .forms import VacationForm, EmployeeForm, DepartmentForm
 from .openpyxl_config import default_entry_style, remarks_font
 
@@ -196,6 +196,7 @@ class VacationCreateView(CreateView):
     def get_initial(self, *args, **kwargs):
         initial = super(VacationCreateView, self).get_initial(**kwargs)
         initial['employee'] = get_object_or_404(Employee, pk=self.kwargs.get('employee_id'))
+        initial['relevance'] = ARCHIVE
         return initial
 
     def get_context_data(self, **kwargs):
@@ -246,6 +247,11 @@ class VacationDeleteView(DeleteView):
         self.object.change_values(reverse=True)
         return super(VacationDeleteView, self).form_valid(*args, **kwargs)
 
+    def get_success_url(self):
+        employee_id = Vacation.objects.get(pk=self.kwargs['pk']).employee.pk
+        #print('get_success_url employee_id = ', employee_id)
+        return reverse_lazy('vacations:details', kwargs={'employee_id': employee_id})
+
     #def get_success_url(self):
     #    return reverse_lazy('vacations:details', kwargs={'employee_id': self.kwargs['employee_id']})
 
@@ -277,8 +283,6 @@ def by_department(request, department_id):
 @login_required
 def recalculate_department(request, department_id):
     employees = Employee.objects.filter(department=department_id)
-    vacations = Vacation.objects.all()
-    departments = Department.objects.all()
     current_department = Department.objects.get(pk=department_id)
     vacation_days_by_month = current_department.vacation_days_by_month
 
@@ -289,104 +293,129 @@ def recalculate_department(request, department_id):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
-    employee_days_coef = employees.count() / 12
-    current_year = datetime.date.today().year
-    for month in range(1, 13):
-        vacation_days_by_month[month-1] = round(employee_days_coef * monthrange(current_year, month)[1])
-
-    current_department.save()
+    current_department.init_vacation_days()
 
     for employee in employees:
         employee.reset_rating()
         employee.reset_vacation_days()
-        logger.debug(employee.rating)
+        #logger.debug(employee.rating)
         employee.save()
 
-    for vacation in vacations:
-        if vacation.employee in employees:
-            current_department.change_vacation_days(vacation.start, vacation.end)
+        vacations = Vacation.objects.filter(employee=employee.pk)
+
+        for vacation in vacations:
             vacation.change_values()
+            #if vacation.relevance == PLANNED:
+            #    current_department.change_vacation_days(vacation.start, vacation.end)
 
     return redirect('vacations:by_department', department_id)
 
+def generate_t7_form(department_id=None):
+    if department_id is not None:
+        departments = [Department.objects.get(pk=department_id)]
+    else:
+        departments = Department.objects.all()
 
-def export_t7(request, department_id):
-    #form_template_path = settings.STATIC_URL +
     wb = load_workbook('export_forms/t7_template.xlsx')
-    #...
+    # ...
     ws = wb.active
 
     wb.add_named_style(default_entry_style)
 
-    current_department = Department.objects.get(pk=department_id)
-    employees = Employee.objects.filter(department=department_id)
-
     entries_count = 0
     current_row = 20
 
-    for employee in employees:
-        employee_vacations = Vacation.objects.filter(employee=employee.pk)
-        employee_vacations_count = 0
-        current_row = 20 + entries_count
-        for vacation in employee_vacations:
-            delta = vacation.end - vacation.start
-            vacation_calendar_days = delta.days
+    for department in departments:
+        employees = Employee.objects.filter(department=department.pk)
+        for employee in employees:
+            employee_vacations = Vacation.objects.filter(employee=employee.pk, relevance=PLANNED)
+            employee_vacations_count = 0
+            current_row = 20 + entries_count
+            for vacation in employee_vacations:
+                delta = vacation.end - vacation.start
+                vacation_calendar_days = delta.days + 1
 
-            current_row = 20+entries_count
+                current_row = 20 + entries_count
 
-            ws.insert_rows(current_row)
+                ws.insert_rows(current_row)
 
-            if type(ws.cell(row=current_row, column=1)).__name__ == 'MergedCell':
-                logger.debug('merged cell detected')
-                ws.unmerge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=2)
-            ws.cell(row=current_row, column=1, value=str(current_department))
+                if type(ws.cell(row=current_row, column=1)).__name__ == 'MergedCell':
+                    logger.debug('merged cell detected')
+                    ws.unmerge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=2)
+                ws.cell(row=current_row, column=1, value=str(department))
 
-            ws.cell(row=current_row, column=2, value='specialty')
-            ws.cell(row=current_row, column=3, value=str(employee))
-            ws.cell(row=current_row, column=4, value='id_number')
-            ws.cell(row=current_row, column=5, value=vacation_calendar_days)
-            ws.cell(row=current_row, column=7, value=str(vacation.start))
-            ws.merge_cells(start_row=current_row, start_column=5, end_row=current_row, end_column=6)
-            ws.cell(row=current_row, column=8, value='')
-            ws.cell(row=current_row, column=9, value='')
-            ws.cell(row=current_row, column=12, value='')
-            ws.cell(row=current_row, column=15, value='')
+                ws.cell(row=current_row, column=2, value='specialty')
+                ws.cell(row=current_row, column=3, value=str(employee))
+                ws.cell(row=current_row, column=4, value='id_number')
+                ws.cell(row=current_row, column=5, value=vacation_calendar_days)
+                ws.cell(row=current_row, column=7, value=str(vacation.start))
+                ws.merge_cells(start_row=current_row, start_column=5, end_row=current_row, end_column=6)
+                ws.cell(row=current_row, column=8, value='')
+                ws.cell(row=current_row, column=9, value='')
+                ws.cell(row=current_row, column=12, value='')
+                ws.cell(row=current_row, column=15, value='')
 
-            ws.merge_cells(start_row=current_row, start_column=15, end_row=current_row, end_column=17)
-            ws.merge_cells(start_row=current_row, start_column=9, end_row=current_row, end_column=11)
-            ws.merge_cells(start_row=current_row, start_column=12, end_row=current_row, end_column=14)
+                ws.merge_cells(start_row=current_row, start_column=15, end_row=current_row, end_column=17)
+                ws.merge_cells(start_row=current_row, start_column=9, end_row=current_row, end_column=11)
+                ws.merge_cells(start_row=current_row, start_column=12, end_row=current_row, end_column=14)
 
-            ws.row_dimensions[current_row].height = 30
+                ws.row_dimensions[current_row].height = 30
 
-            entries_count += 1
-            employee_vacations_count += 1
+                entries_count += 1
+                employee_vacations_count += 1
 
-        if employee_vacations_count > 1:
-            ws.merge_cells(start_row=current_row-employee_vacations_count+1, start_column=1, end_row=current_row, end_column=1)
-            ws.merge_cells(start_row=current_row-employee_vacations_count+1, start_column=2, end_row=current_row, end_column=2)
-            ws.merge_cells(start_row=current_row-employee_vacations_count+1, start_column=3, end_row=current_row, end_column=3)
-            ws.merge_cells(start_row=current_row-employee_vacations_count+1, start_column=4, end_row=current_row, end_column=4)
+            if employee_vacations_count > 1:
+                ws.merge_cells(start_row=current_row - employee_vacations_count + 1, start_column=1,
+                               end_row=current_row, end_column=1)
+                ws.merge_cells(start_row=current_row - employee_vacations_count + 1, start_column=2,
+                               end_row=current_row, end_column=2)
+                ws.merge_cells(start_row=current_row - employee_vacations_count + 1, start_column=3,
+                               end_row=current_row, end_column=3)
+                ws.merge_cells(start_row=current_row - employee_vacations_count + 1, start_column=4,
+                               end_row=current_row, end_column=4)
 
-    ws.row_dimensions[current_row+1].height = 35
-    ws.row_dimensions[current_row+2].height = 12
-    ws.row_dimensions[current_row+3].height = 35
-    ws.row_dimensions[current_row+4].height = 12
-    ws.row_dimensions[current_row+5].height = 35
-    ws.row_dimensions[current_row+6].height = 12
+    ws.row_dimensions[current_row + 2].height = 35
+    ws.row_dimensions[current_row + 3].height = 12
+    ws.row_dimensions[current_row + 4].height = 35
+    ws.row_dimensions[current_row + 5].height = 12
+    ws.row_dimensions[current_row + 6].height = 35
+    ws.row_dimensions[current_row + 7].height = 12
 
-    for row in ws.iter_rows(min_row=20, max_col=17, max_row=current_row-1):
+    for row in ws.iter_rows(min_row=20, max_col=17, max_row=current_row):
         for cell in row:
             cell.style = 'default_entry_style'
             if cell.column == 15:
                 cell.font = remarks_font
 
+    return wb
+
+
+def export_t7_department(request, department_id):
+    #form_template_path = settings.STATIC_URL +
+
 
     #logger.debug(ws['A23'].value)
+    wb = generate_t7_form(department_id=department_id)
+
+    department_title = Department.objects.get(pk=department_id).title
+    filename = f'Форма Т-7 (График отпусков) {department_title}.xlsx'
 
     response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/ms-excel')
-    #response['Content-Disposition'] = 'attachment; filename=Форма\ Т-7\ (График\ отпусков).xlsx'
-    #response['Content-Disposition'] = 'attachment; filename=Форма_Т-7_(График_отпусков).xlsx'
-    response['Content-Disposition'] = 'attachment; filename=t7form.xlsx'
+    response['Content-Disposition'] = "attachment; filename=" + escape_uri_path(filename)
+    return response
+
+
+def export_t7_all(request):
+    #form_template_path = settings.STATIC_URL +
+
+
+    #logger.debug(ws['A23'].value)
+    wb = generate_t7_form()
+
+    filename = 'Форма Т-7 (График отпусков).xlsx'
+
+    response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/ms-excel')
+    response['Content-Disposition'] = "attachment; filename=" + escape_uri_path(filename)
     return response
 
 '''

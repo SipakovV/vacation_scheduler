@@ -1,7 +1,8 @@
 import datetime
 import logging
 import copy
-from logging.handlers import RotatingFileHandler
+import math
+from calendar import monthrange
 
 from django.core.exceptions import ValidationError
 from django.shortcuts import render
@@ -26,6 +27,9 @@ RATING_COEF = {
     11: 8,
     12: 10,
 }
+ARCHIVE = 0
+RELEVANT = 1
+PLANNED = 2
 
 
 class Department(models.Model):
@@ -40,10 +44,17 @@ class Department(models.Model):
     def __str__(self):
         return self.title
 
-    def test_vacation_days(self):
-        for i in range(12):
-            self.vacation_days_by_month[i] = i*3
-            logger.debug(self.vacation_days_by_month[i])
+    def init_vacation_days(self):
+        employees = Employee.objects.filter(department=self.pk)
+        employee_days_coef = employees.count() / 12
+        current_year = datetime.date.today().year
+        for month in range(1, 13):
+            month_days = monthrange(current_year, month)[1]
+            self.vacation_days_by_month[month - 1] = math.ceil((employee_days_coef * month_days))
+            if self.vacation_days_by_month[month - 1] < month_days:
+                self.vacation_days_by_month[month - 1] = month_days
+
+        self.save()
 
     def check_vacation_days(self, start, end):
         cur_date = start
@@ -91,7 +102,7 @@ class Employee(models.Model):
     first_name = models.CharField(max_length=30, verbose_name='Имя')
     middle_name = models.CharField(max_length=50, verbose_name='Отчество')
     department = models.ForeignKey(Department, on_delete=models.CASCADE, verbose_name='Отдел')
-    replaces = models.ForeignKey('self', on_delete=models.SET_NULL, verbose_name='Замещает', default=None, blank=True,
+    replaces = models.ForeignKey('self', on_delete=models.SET_NULL, verbose_name='Замещает сотрудника', default=None, blank=True,
                                  null=True)
     rating = models.FloatField(verbose_name='Рейтинг', default=0)
     entry_date = models.DateField(verbose_name='Дата начала работы', default=datetime.date.min)
@@ -131,12 +142,19 @@ class Employee(models.Model):
 
 
 class Vacation(models.Model):
+    RELEVANCE_CHOICES = (
+        (ARCHIVE, 'Неактуальный (не влияет на рейтинг, >3 лет назад)'),
+        (RELEVANT, 'Актуальный (влияет на рейтинг, >3 лет назад)'),
+        (PLANNED, 'Запланированный (влияет на рейтинг и количество отпускных дней)'),
+    )
+
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, verbose_name='Работник')
     start = models.DateField(verbose_name='Начало отпуска')
     end = models.DateField(verbose_name='Конец отпуска')
+    relevance = models.SmallIntegerField(choices=RELEVANCE_CHOICES, default=ARCHIVE, verbose_name='Актуальность')
 
     def __str__(self):
-        return str(self.start) + '-' + str(self.end) + ' (' + str(self.employee) + ')'
+        return str(self.start) + '-' + str(self.end) + ' (' + str(self.employee) + ')' + ' [' + str(self.relevance) + ']'
 
     def is_current_year(self):
         current_year = datetime.date.today().year
@@ -152,9 +170,6 @@ class Vacation(models.Model):
         current_year = datetime.date.today().year
 
         relevance_date = datetime.date.today().replace(year=current_year - 3)
-        # entry_anniversary = entry_anniversary.replace(year=current_year)
-        # if entry_anniversary > datetime.date.today():
-        #    entry_anniversary = entry_anniversary.replace(year=current_year-1)
 
         if getattr(self, 'start') > relevance_date:
             relevant_flag = True
@@ -162,42 +177,42 @@ class Vacation(models.Model):
         return relevant_flag
 
     def change_values(self, reverse=False):
-        empl = Employee.objects.get(pk=self.employee.pk)
-        start = getattr(self, 'start')
-        end = getattr(self, 'end')
+        if getattr(self, 'relevance') >= RELEVANT:
+            empl = Employee.objects.get(pk=self.employee.pk)
+            start = getattr(self, 'start')
+            end = getattr(self, 'end')
 
-        logger.debug('change_values call')
-        # entry_anniversary = empl.entry_date
+            logger.debug('change_values call')
+            # entry_anniversary = empl.entry_date
 
-        delta = datetime.timedelta(days=1)
-        cur_date = start
-        diff = 0
+            delta = datetime.timedelta(days=1)
+            cur_date = start
+            diff = 0
 
-        while cur_date <= end:
-            if cur_date.isoweekday() <= 5:
-                #empl.vacation_days -= 1
-                diff += RATING_COEF[cur_date.month]
-            cur_date += delta
+            while cur_date <= end:
+                if cur_date.isoweekday() <= 5:
+                    #empl.vacation_days -= 1
+                    diff += RATING_COEF[cur_date.month]
+                cur_date += delta
 
-        if reverse:
-            empl.change_rating(-diff)
-        else:
-            empl.change_rating(diff)
+            if reverse:
+                empl.change_rating(-diff)
+            else:
+                empl.change_rating(diff)
 
-        if self.is_current_year():
-            empl.department.change_vacation_days(start, end, reverse)
-            empl.change_vacation_days(start, end, reverse)
+            if getattr(self, 'relevance') == PLANNED:
+                empl.department.change_vacation_days(start, end, reverse)
+                empl.change_vacation_days(start, end, reverse)
 
-        empl.save()
+            empl.save()
 
     def save(self, *args, **kwargs):
         empl = Employee.objects.get(pk=self.employee.pk)
 
-        if self.is_relevant():
-            self.change_values()
+        self.change_values()
 
         super(Vacation, self).save(*args, **kwargs)
-        logger.info('Vacation added: ' + str(empl) + ' ' + self.start.strftime('%m/%d/%Y') + '-' + self.end.strftime('%m/%d/%Y'))
+        logger.info('Vacation added: ' + str(self))
 
     class Meta:
         verbose_name_plural = 'Отпуска'

@@ -58,7 +58,7 @@
             <td class="col_detail1">Отпуска</td>
             <td>{% for vacation in vacations %}
                 {% if vacation.employee.pk == employee.pk %}
-                {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }} {% if user.is_department_manager >= EDIT or user.is_staff %}<a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">X</a><br>{% endif %}
+                {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }} [{{ vacation.relevance }}]{% if user.is_department_manager or user.is_staff %}<a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">X</a><br>{% endif %}
                 {% endif %}
             {% endfor %}</td>
         </tr>
