@@ -27,7 +27,7 @@
             <li><a {% block index %}{% endblock %} href="{% url 'vacations:index' %}">Главная</a></li>
             {% if user.employees_permission_level >= EDIT or user.is_staff %}<li><a {% block add_employee %}{% endblock %} href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>{% endif %}
             {% if user.employees_permission_level >= EDIT and user.is_department_manager or user.is_staff %}<li><a {% block add_department %}{% endblock %} href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>{% endif %}
-            {% if user.is_staff %}<li><a href="http://192.168.0.26:8000/admin">Панель администратора</a></li>{% endif %}
+            {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Панель администратора</a></li>{% endif %}
         </ul>
     </nav>
     {% for message in messages %}
