@@ -13,8 +13,10 @@
                 <option {% if department == current_department %} selected="selected" {% endif %} value="{% url 'vacations:by_department' department.pk %}">{{ department }}</option>
             {% endfor %}
         </select>
+        {% if user.is_department_manager or user.employees_permission_level >= VIEW or user.is_staff %}
         <a href="{% url 'vacations:recalculate_department' current_department.pk %}"><button>Пересчитать рейтинг</button></a>
         <a href="{% url 'vacations:export_t7_department' current_department.pk %}"><button>Экспорт формы Т-7</button></a>
+        {% endif %}
     </h2>
     <div>
         <table>

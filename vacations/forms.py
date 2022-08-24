@@ -25,28 +25,49 @@ class DateInput(DateInput):
 class EmployeeForm(ModelForm):
     class Meta:
         model = Employee
-        fields = ('last_name', 'first_name', 'middle_name', 'department', 'replaces', 'entry_date', 'vacation_days')
-        #exclude = ['rating']
+        fields = ('personnel_number', 'last_name', 'first_name', 'middle_name', 'department', 'specialty', 'replaces',
+                  'entry_date', 'max_vacation_days', 'vacation_days')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["entry_date"].widget = DateInput(format='%d-%m-%Y')
+        self.fields['vacation_days'].widget = HiddenInput()
+        self.fields['vacation_days'].required = False
+        self.fields['vacation_days'].initial = 38
 
         for name in self.fields.keys():
             self.fields[name].widget.attrs.update({
                 'class': 'form-control',
             })
 
+    def clean(self):
+        cleaned_data = super(EmployeeForm, self).clean()
+        cleaned_data['vacation_days'] = cleaned_data['max_vacation_days']
+
 
 class DepartmentForm(ModelForm):
     class Meta:
         model = Department
-        fields = ('title',)
+        fields = ('title', 'full_title')
 
 
 class VacationForm(ModelForm):
     #forms.IntegerField(required = False)
     #force_proceed = BooleanField(initial=False)
+
+    class Meta:
+        model = Vacation
+        fields = ('start', 'end', 'employee', 'relevance')
+        error_messages = {
+            #NON_FIELD_ERRORS: {
+            'end': {
+                'invalid_period': 'Неправильный период!',
+                'vacation_days': 'Недостаточно отпускных!',
+                'intersection': 'Заданный отпуск пересекается с уже имеющимся отпуском!',
+                'replaced_employee': 'Замещаемый работник уже имеет отпуск в этот период!',
+                'month_vacation_days': 'Недостаточно отпускных дней в месяце!',
+            },
+        }
 
     def __init__(self, *args, **kwargs):
         #print('kwargs(forms.init) = ', kwargs)
@@ -155,16 +176,3 @@ class VacationForm(ModelForm):
 
         return cleaned_data
 
-    class Meta:
-        model = Vacation
-        fields = ('start', 'end', 'employee', 'relevance')
-        error_messages = {
-            #NON_FIELD_ERRORS: {
-            'end': {
-                'invalid_period': 'Неправильный период!',
-                'vacation_days': 'Недостаточно отпускных!',
-                'intersection': 'Заданный отпуск пересекается с уже имеющимся отпуском!',
-                'replaced_employee': 'Замещаемый работник уже имеет отпуск в этот период!',
-                'month_vacation_days': 'Недостаточно отпускных дней в месяце!',
-            },
-        }

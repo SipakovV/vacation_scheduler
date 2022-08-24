@@ -310,6 +310,7 @@ def recalculate_department(request, department_id):
 
     return redirect('vacations:by_department', department_id)
 
+
 def generate_t7_form(department_id=None):
     if department_id is not None:
         departments = [Department.objects.get(pk=department_id)]
@@ -390,11 +391,15 @@ def generate_t7_form(department_id=None):
     return wb
 
 
+@login_required
 def export_t7_department(request, department_id):
-    #form_template_path = settings.STATIC_URL +
+    user = request.user
 
+    if not user.is_staff:
+        if not (user.employees_permission_level >= VIEW or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
+            #messages.warning(request, 'Недостаточно прав для доступа к странице')
+            return redirect('vacations:details', user.bound_employee.pk)
 
-    #logger.debug(ws['A23'].value)
     wb = generate_t7_form(department_id=department_id)
 
     department_title = Department.objects.get(pk=department_id).title
@@ -405,11 +410,14 @@ def export_t7_department(request, department_id):
     return response
 
 
+@login_required
 def export_t7_all(request):
-    #form_template_path = settings.STATIC_URL +
+    user = request.user
 
+    if not user.is_staff:
+        if user.employees_permission_level < VIEW:
+            return redirect('vacations:details', user.bound_employee.pk)
 
-    #logger.debug(ws['A23'].value)
     wb = generate_t7_form()
 
     filename = 'Форма Т-7 (График отпусков).xlsx'
@@ -417,23 +425,6 @@ def export_t7_all(request):
     response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/ms-excel')
     response['Content-Disposition'] = "attachment; filename=" + escape_uri_path(filename)
     return response
-
-'''
-def export_t7(request, department_id):
-
-
-    workbook = Workbook()
-    worksheet = workbook.active
-    
-    
-
-    # ... worksheet.append(...) all of your data ...
-
-    response = HttpResponse(content=save_virtual_workbook(workbook),
-                            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=myexport.xlsx'
-    return response
-'''
 
 '''
 @login_required
