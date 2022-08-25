@@ -4,12 +4,12 @@ from django.views.generic.base import RedirectView
 
 from .views import index, by_department, VacationCreateView, EmployeeCreateView, EmployeeUpdateView, success, \
     DepartmentCreateView, EmployeeDeleteView, DepartmentDeleteView, VacationDeleteView, recalculate_department, \
-    export_t7_department, export_t7_all
+    export_t7_department, export_t7_all, bootstrap_test
 
 app_name = 'vacations'
 
 urlpatterns = [
-
+    path('bootstrap_test', bootstrap_test, name='test'),
     path('', index, name='index'),
     path('export_t7/', export_t7_all, name='export_t7_all'),
     path('department/', RedirectView.as_view(pattern_name='vacations:index', permanent=False), name='index_redirect'),

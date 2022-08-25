@@ -458,3 +458,6 @@ def index(request):
 def success(request):
     return render(request, 'vacations/success.html')
 
+
+def bootstrap_test(request):
+    return render(request, 'vacations/test.html')

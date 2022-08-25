@@ -5,9 +5,22 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Главная{% endblock %} :: График отпусков</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'vacations/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" type="text/css" href="{# static 'vacations/style.css' #}">
 </head>
-<body>
+
+
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container">
+            <ul class="nav navbar-nav">
+                <li><a class="navbar-brand {% block index %}{% endblock %}" href="{% url 'vacations:index' %}">Главная</a></li>
+                {% if user.employees_permission_level >= EDIT or user.is_staff %}<li><a {% block add_employee %}{% endblock %} href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>{% endif %}
+                {% if user.employees_permission_level >= EDIT and user.is_department_manager or user.is_staff %}<li><a {% block add_department %}{% endblock %} href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>{% endif %}
+                {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Панель администратора</a></li>{% endif %}
+            </ul>
+        </div>
+    </nav>
     <header>
         <h1>График отпусков<div>{% block auth %}
             {% if user.is_authenticated %}
@@ -22,14 +35,7 @@
             {% endif %}
         {% endblock %}</div></h1>
     </header>
-    <nav>
-        <ul>
-            <li><a {% block index %}{% endblock %} href="{% url 'vacations:index' %}">Главная</a></li>
-            {% if user.employees_permission_level >= EDIT or user.is_staff %}<li><a {% block add_employee %}{% endblock %} href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>{% endif %}
-            {% if user.employees_permission_level >= EDIT and user.is_department_manager or user.is_staff %}<li><a {% block add_department %}{% endblock %} href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>{% endif %}
-            {% if user.is_staff %}<li><a href="{% url 'admin:index' %}">Панель администратора</a></li>{% endif %}
-        </ul>
-    </nav>
+
     {% for message in messages %}
         <p id="message">{{ message }}</p>
     {% endfor %}

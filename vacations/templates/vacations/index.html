@@ -1,8 +1,9 @@
 {% extends "layout/basic.html" %}
 
-{% block index %}class="active"{% endblock %}
+{% block index %}active{% endblock %}
 
 {% block content %}
+{% load static %}
 <section>
     <h2>
         <select onChange="window.location.href=this.value">
@@ -29,4 +30,6 @@
         {% endfor %}
     </table>
 </section>
+
+<img src="{% static 'images/sample_image.png' %}">
 {% endblock %}
