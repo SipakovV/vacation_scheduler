@@ -1,5 +1,9 @@
 *.pyc
 *.log
 
+logs/
 */migrations/
+static/
+static_root/
+bootstrap/
 
