@@ -1,64 +1,70 @@
 {% extends "layout/basic.html" %}
 
-{% block index %}class="active"{% endblock %}
+{% block departments_active %}active{% endblock %}
 
 {% block title %}{{ current_department }}{% endblock %}
 
-{% block content %}
-<section>
-    <h2>
-        <select onChange="window.location.href=this.value">
-            <option value="{% url 'vacations:index' %}">Все отделы</option>
-            {% for department in departments %}
-                <option {% if department == current_department %} selected="selected" {% endif %} value="{% url 'vacations:by_department' department.pk %}">{{ department }}</option>
-            {% endfor %}
-        </select>
-        {% if user.is_department_manager or user.employees_permission_level >= VIEW or user.is_staff %}
-        <a href="{% url 'vacations:recalculate_department' current_department.pk %}"><button>Пересчитать рейтинг</button></a>
-        <a href="{% url 'vacations:export_t7_department' current_department.pk %}"><button>Экспорт формы Т-7</button></a>
-        {% endif %}
-    </h2>
-    <div>
-        <table>
-            <tr>
-                <th>Янв</th>
-                <th>Фев</th>
-                <th>Мар</th>
-                <th>Апр</th>
-                <th>Май</th>
-                <th>Июн</th>
-                <th>Июл</th>
-                <th>Авг</th>
-                <th>Сен</th>
-                <th>Окт</th>
-                <th>Ноя</th>
-                <th>Дек</th>
-            </tr>
-            <tr>
-                {% load humanize %}
-                {% for num in vacation_days_by_month %}
-                    <th>{{ num }}</th>
-                {% endfor %}
-            </tr>
-        </table>
-    </div>
-    <table class="default">
-        <tr class="blue">
-            <th class="col1">Место</th>
-            <th class="col2">Рейтинг</th>
-            <th class="col3">ФИО</th>
-            <th class="col4">Замещает</th>
-            <th class="col5">Отпуска</th>
+{% block leftbar %}
+  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+    {% if user.is_department_manager or user.employees_permission_level >= edit or user.is_staff %}
+    <li class="nav-item"><a class="nav-link" href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>
+    {% endif %}
+    {% if user.is_department_manager or user.employees_permission_level >= VIEW or user.is_staff %}
+    <li class="nav-item"><a class="nav-link" href="{% url 'vacations:recalculate_department' current_department.pk %}">Пересчитать рейтинг</a></li>
+    <li class="nav-item"><a class="nav-link" href="{% url 'vacations:export_t7_department' current_department.pk %}">Экспорт формы Т-7</a></li>
+    {% endif %}
+  
+    <li class="nav-item">
+      <table>
+        <tr>
+          <th>Янв</th>
+          <th>Фев</th>
+          <th>Мар</th>
+          <th>Апр</th>
+          <th>Май</th>
+          <th>Июн</th>
+          <th>Июл</th>
+          <th>Авг</th>
+          <th>Сен</th>
+          <th>Окт</th>
+          <th>Ноя</th>
+          <th>Дек</th>
         </tr>
-        {% for employee in employees %}
-            <tr class="{% cycle 'white' 'gray' %}"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'vacations:details' employee.pk %}">{{ employee }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
-                <td>
-                {% for vacation in vacations %}
-                    {% if vacation.employee.pk == employee.pk %}
-                        {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
-                    {% endif %}
-                {% endfor %}</td></tr>
-        {% endfor %}
-    </table>
-</section>
+        <tr>
+          {% load humanize %}
+          {% for num in vacation_days_by_month %}
+              <th>{{ num }}</th>
+          {% endfor %}
+        </tr>
+      </table>
+    </li>
+  </ul>
+{% endblock %}
+
+{% block content %}
+  <div class="container-left position-static row align-items-start">
+    <div class="col">
+    
+    </div>
+  </div>
+
+  <table class="default">
+    <tr class="blue">
+      <th class="col1">Место</th>
+      <th class="col2">Рейтинг</th>
+      <th class="col3">ФИО</th>
+      <th class="col4">Замещает</th>
+      <th class="col5">Отпуска</th>
+    </tr>
+    {% for employee in employees %}
+      <tr class="{% cycle 'white' 'gray' %}"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'vacations:details' employee.pk %}">{{ employee }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+        <td>
+        {% for vacation in vacations %}
+          {% if vacation.employee.pk == employee.pk %}
+            {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
+          {% endif %}
+        {% endfor %}</td></tr>
+    {% endfor %}
+  </table>
+</div>
 {% endblock %}

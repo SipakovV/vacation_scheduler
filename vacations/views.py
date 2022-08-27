@@ -460,4 +460,4 @@ def success(request):
 
 
 def bootstrap_test(request):
-    return render(request, 'vacations/test.html')
+    return render(request, 'vacations/test1.html')

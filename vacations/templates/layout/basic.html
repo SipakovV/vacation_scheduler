@@ -3,68 +3,84 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Главная{% endblock %} :: График отпусков</title>
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <meta charset="UTF-8">
+  <title>{% block title %}Главная{% endblock %} :: График отпусков</title>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
 
-    <!--<link rel="stylesheet" type="text/css" href="{# static 'vacations/style.css' #}">-->
+  <!--<link rel="stylesheet" type="text/css" href="{# static 'vacations/style.css' #}">-->
 </head>
-    <nav class="navbar navbar-expand-sm navbar-light bg-light">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#"><strong>ИВЦ РЖД</strong> График отпусков</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                Dropdown
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="#">Action</a></li>
-                <li><a class="dropdown-item" href="#">Another action</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="#">Something else here</a></li>
-              </ul>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
-            </li>
-          </ul>
+  <nav class="navbar navbar-expand-md navbar-light bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><strong>ИВЦ РЖД</strong> График отпусков</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link {% block index_active %}{% endblock %}" aria-current="page" href="{% url 'vacations:index' %}">Все отделы</a>
+          </li>
 
-        </div>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% block departments_active %}{% endblock %}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Выбрать отдел
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+              {% for department in departments %}
+                <li><a class="dropdown-item" href="{% url 'vacations:by_department' department.pk %}">{{ department }}</a></li>
+              {% endfor %}
+              {% if user.employees_permission_level >= EDIT and user.is_department_manager or user.is_staff %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>
+              {% endif %}
+            </ul>
+          </li>
+            {% if user.is_staff %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'admin:index' %}">Панель администратора</a>
+          </li>
+          {% endif %}
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+          </li>
+        </ul>
+
       </div>
       <div class="container-right">
-        {% block auth %}
-          {% if user.is_authenticated %}
-          {% if user.bound_employee is not None %}
-          <a href="{% url 'vacations:details' user.bound_employee.pk %}">{{ user }}</a>
-          {% else %}
-          {{ user }}
-          {% endif %}
-          <a href="{% url 'accounts:logout' %}">Выход</a>
-          {% else %}
-          <a href="{% url 'accounts:login' %}">Вход в систему</a>
-          {% endif %}
+        {% if user.is_authenticated %}
+          <div class="container">
+            {% if user.bound_employee is not None %}
+            <a class="nav-link" href="{% url 'vacations:details' user.bound_employee.pk %}">{{ user }}</a>
+            {% else %}
+            <a class="nav-link" href="#">{{ user }}</a>
+          </div>
+        {% endif %}
+        <div class="container"><a class="nav-link" href="{% url 'accounts:logout' %}">Выход</a></div>
+        {% else %}
+        <a href="{% url 'accounts:login' %}">Вход в систему</a>
+        {% endif %}
+      </div>
+    </div>
+
+  </nav>
+
+  {% for message in messages %}
+      <p id="message">{{ message }}</p>
+  {% endfor %}
+
+  <div class="container-fluid min-vh-100 d-flex flex-column mx-auto">
+    <div class="row flex-grow-1">
+      <div class="col-md-2 border px-3 py-2">
+        {% block leftbar %}
         {% endblock %}
       </div>
-    </nav>
-    <header>
-        <h1>График отпусков</h1>
-    </header>
+      <div class="col-md-10 border px-3 py-2">
+        {% block content %}
+        {% endblock %}
+      </div>
+    </div>
+  </div>
 
-    {% for message in messages %}
-        <p id="message">{{ message }}</p>
-    {% endfor %}
-    {% block content %}
-    {% endblock %}
-    <script type="text/javascript" src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>

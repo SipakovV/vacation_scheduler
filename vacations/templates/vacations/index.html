@@ -1,16 +1,12 @@
 {% extends "layout/basic.html" %}
 
-{% block index %}active{% endblock %}
+{% block index_active %}active{% endblock %}
 
 {% block content %}
 {% load static %}
 <section>
     <h2>
-        <select onChange="window.location.href=this.value">
-            <option selected="selected">Все отделы</option>{% for department in departments %}
-            <option value="{% url 'vacations:by_department' department.pk %}">{{ department }}</option>{% endfor %}
-        </select>
-         <a href="{% url 'vacations:export_t7_all' %}"><button>Экспорт формы Т-7</button></a>
+        <a href="{% url 'vacations:export_t7_all' %}"><button>Экспорт формы Т-7</button></a>
     </h2>
     <table>
         <tr class="blue">
