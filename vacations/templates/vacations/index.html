@@ -2,30 +2,28 @@
 
 {% block index_active %}active{% endblock %}
 
+{% block leftbar %}
+<span class="fs-5 d-none d-sm-inline"><a class="nav-link text-center"><strong>Все отделы</strong></a></span>
+<a href="{% url 'vacations:export_t7_all' %}" class="list-group-item list-group-item-action">Экспорт формы Т-7</a>
+{% endblock %}
+
 {% block content %}
 {% load static %}
-<section>
-    <h2>
-        <a href="{% url 'vacations:export_t7_all' %}"><button>Экспорт формы Т-7</button></a>
-    </h2>
-    <table>
-        <tr class="blue">
-            <th class="col1">Отдел</th>
-            <th class="col3">ФИО</th>
-            <th class="col4">Замещает</th>
-            <th class="col5">Отпуска</th>
-        </tr>
-        {% for employee in employees %}
-            <tr class="{% cycle 'white' 'gray' %}"><td>{{ employee.department }}</td><td><a href="{% url 'vacations:details' employee.pk %}">{{ employee }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
-                <td>
-                {% for vacation in vacations %}
-                    {% if vacation.employee.pk == employee.pk %}
-                        {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
-                    {% endif %}
-                {% endfor %}</td></tr>
-        {% endfor %}
-    </table>
-</section>
-
-<img src="{% static 'images/sample_image.png' %}">
+<table class="table">
+  <tr class="blue">
+    <th class="col1">Отдел</th>
+    <th class="col3">ФИО</th>
+    <th class="col4">Замещает</th>
+    <th class="col5">Отпуска</th>
+  </tr>
+  {% for employee in employees %}
+  <tr class="{% cycle 'white' 'gray' %}"><td>{{ employee.department }}</td><td><a href="{% url 'vacations:details' employee.pk %}">{{ employee }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+    <td>
+      {% for vacation in vacations %}
+      {% if vacation.employee.pk == employee.pk %}
+      {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
+      {% endif %}
+      {% endfor %}</td></tr>
+  {% endfor %}
+</table>
 {% endblock %}

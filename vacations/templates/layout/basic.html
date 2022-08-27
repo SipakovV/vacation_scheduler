@@ -11,48 +11,50 @@
 </head>
   <nav class="navbar navbar-expand-md navbar-light bg-light">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#"><strong>ИВЦ РЖД</strong> График отпусков</a>
+      <a class="navbar-brand" href="{% url 'vacations:index' %}"><strong>ИВЦ РЖД</strong> График отпусков</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          {% if user.employees_permission_level >= VIEW or user.is_staff %}
           <li class="nav-item">
             <a class="nav-link {% block index_active %}{% endblock %}" aria-current="page" href="{% url 'vacations:index' %}">Все отделы</a>
           </li>
-
           <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle {% block departments_active %}{% endblock %}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
               Выбрать отдел
             </a>
             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
               {% for department in departments %}
                 <li><a class="dropdown-item" href="{% url 'vacations:by_department' department.pk %}">{{ department }}</a></li>
               {% endfor %}
-              {% if user.employees_permission_level >= EDIT and user.is_department_manager or user.is_staff %}
+              {% if user.employees_permission_level >= EDIT or user.is_staff %}
                 <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="{% url 'vacations:add_department' %}">Добавить отдел</a></li>
               {% endif %}
             </ul>
           </li>
-            {% if user.is_staff %}
+          {% else %}
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'admin:index' %}">Панель администратора</a>
+            <a class="nav-link {% block departments_active %}{% endblock %}" aria-current="page" href="{% url 'vacations:by_department' current_department.pk %}">{{ current_department }}</a>
           </li>
           {% endif %}
+            {% if user.is_staff %}
           <li class="nav-item">
-            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>
+            <a class="nav-link" href="{% url 'admin:index' %}">Администрирование</a>
           </li>
+          {% endif %}
         </ul>
 
       </div>
-      <div class="container-right">
+      <div class="container-right border my-auto">
         {% if user.is_authenticated %}
           <div class="container">
             {% if user.bound_employee is not None %}
             <a class="nav-link" href="{% url 'vacations:details' user.bound_employee.pk %}">{{ user }}</a>
             {% else %}
-            <a class="nav-link" href="#">{{ user }}</a>
+            <a class="nav-link">{{ user }}</a>
           </div>
         {% endif %}
         <div class="container"><a class="nav-link" href="{% url 'accounts:logout' %}">Выход</a></div>
@@ -70,8 +72,29 @@
 
   <div class="container-fluid min-vh-100 d-flex flex-column mx-auto">
     <div class="row flex-grow-1">
-      <div class="col-md-2 border px-3 py-2">
+      <div class="col-md-2 border px-2 py-1">
         {% block leftbar %}
+        <span class="fs-5 d-none d-sm-inline"><a class="nav-link text-center" href="{% url 'vacations:by_department' current_department.pk %}"><strong>{{ current_department }}</strong></a></span>
+        {% if current_department.full_title is not None %}<span class="d-none d-sm-inline">{{ current_department.full_title }}</span>{% endif %}
+        <div class="list-group">
+          {% if user.is_department_manager or user.employees_permission_level >= edit or user.is_staff %}
+            <a href="{% url 'vacations:add_employee' %}" class="list-group-item list-group-item-action">Добавить сотрудника</a>
+          {% endif %}
+          {% if user.is_department_manager or user.employees_permission_level >= VIEW or user.is_staff %}
+            <a href="{% url 'vacations:recalculate_department' current_department.pk %}" class="list-group-item list-group-item-action">Пересчитать отдел</a>
+            <a href="{% url 'vacations:export_t7_department' current_department.pk %}" class="list-group-item list-group-item-action">Экспорт формы Т-7</a>
+        </div>
+        <div class="container border">
+          Отпускные дни по месяцам:
+          <table class="table table-bordered table-sm my-1">
+            {% load humanize %}
+            {% for month, num  in vacation_days_by_month %}
+              <tr class="{% if num < 0 %}table-secondary{% endif %}"><td>{{ month }}</td><td>{{ num }}</td></tr>
+            {% endfor %}
+          </table>
+        </div>
+        {% endif %}
+        
         {% endblock %}
       </div>
       <div class="col-md-10 border px-3 py-2">

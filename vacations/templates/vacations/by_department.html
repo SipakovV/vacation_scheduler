@@ -4,42 +4,6 @@
 
 {% block title %}{{ current_department }}{% endblock %}
 
-{% block leftbar %}
-  <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-    {% if user.is_department_manager or user.employees_permission_level >= edit or user.is_staff %}
-    <li class="nav-item"><a class="nav-link" href="{% url 'vacations:add_employee' %}">Добавить сотрудника</a></li>
-    {% endif %}
-    {% if user.is_department_manager or user.employees_permission_level >= VIEW or user.is_staff %}
-    <li class="nav-item"><a class="nav-link" href="{% url 'vacations:recalculate_department' current_department.pk %}">Пересчитать рейтинг</a></li>
-    <li class="nav-item"><a class="nav-link" href="{% url 'vacations:export_t7_department' current_department.pk %}">Экспорт формы Т-7</a></li>
-    {% endif %}
-  
-    <li class="nav-item">
-      <table>
-        <tr>
-          <th>Янв</th>
-          <th>Фев</th>
-          <th>Мар</th>
-          <th>Апр</th>
-          <th>Май</th>
-          <th>Июн</th>
-          <th>Июл</th>
-          <th>Авг</th>
-          <th>Сен</th>
-          <th>Окт</th>
-          <th>Ноя</th>
-          <th>Дек</th>
-        </tr>
-        <tr>
-          {% load humanize %}
-          {% for num in vacation_days_by_month %}
-              <th>{{ num }}</th>
-          {% endfor %}
-        </tr>
-      </table>
-    </li>
-  </ul>
-{% endblock %}
 
 {% block content %}
   <div class="container-left position-static row align-items-start">
@@ -48,7 +12,7 @@
     </div>
   </div>
 
-  <table class="default">
+  <table class="table table-sm my-1">
     <tr class="blue">
       <th class="col1">Место</th>
       <th class="col2">Рейтинг</th>
@@ -66,5 +30,4 @@
         {% endfor %}</td></tr>
     {% endfor %}
   </table>
-</div>
 {% endblock %}

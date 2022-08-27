@@ -3,113 +3,76 @@
 {% block title %}{{ employee }}{% endblock %}
 
 {% block content %}
-<section>
-    <div>
-        <table>
-            <tr>
-                <th>Янв</th>
-                <th>Фев</th>
-                <th>Мар</th>
-                <th>Апр</th>
-                <th>Май</th>
-                <th>Июн</th>
-                <th>Июл</th>
-                <th>Авг</th>
-                <th>Сен</th>
-                <th>Окт</th>
-                <th>Ноя</th>
-                <th>Дек</th>
-            </tr>
-            <tr>
-                {% load humanize %}
-                {% for num in vacation_days_by_month %}
-                    <th>{{ num }}</th>
-                {% endfor %}
-            </tr>
-        </table>
-    </div>
-    <table>
-        <tr class="blue">
-            <th class="col_detail1">ФИО</th>
-            <th class="col_detail2">{{ employee }}{% if user.employees_permission_level >= EDIT or user.is_staff %}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a><a href="{% url 'vacations:employee_delete_form' employee.pk %}"><button class="button deletebutton">Удалить сотрудника</button></a>{% endif %}</th>
+<table class="table">
+  <tr class="blue">
+      <th class="col_detail1">ФИО</th>
+      <th class="col_detail2">{{ employee }}{% if user.employees_permission_level >= EDIT or user.is_staff %}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a><a href="{% url 'vacations:employee_delete_form' employee.pk %}"><button class="button deletebutton">Удалить сотрудника</button></a>{% endif %}</th>
 
-        </tr>
-        <tr class="white">
-            <td class="col_detail1">Отдел</td>
-            <td><a href="{% url 'vacations:by_department' employee.department.pk %}">{{ employee.department }}</a></td>
-        </tr>
-        <tr class="gray">
-            <td class="col_detail1">Дата начала работы</td>
-            <td>{{ employee.entry_date }}</td>
-        </tr>
-        <tr class="white">
-            <td class="col_detail1">Рейтинг</td>
-            <td>{{ employee.rating }}</td>
-        </tr>
-        <tr class="gray">
-            <td class="col_detail1">Замещает</td>
-            <td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
-        </tr>
-        <tr class="white">
-            <td class="col_detail1">Отпускные дни</td>
-            <td>{{ employee.vacation_days }}</td>
-        </tr>
-        <tr class="gray">
-            <td class="col_detail1">Отпуска</td>
-            <td>{% for vacation in vacations %}
-                {% if vacation.employee.pk == employee.pk %}
-                {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }} [{{ vacation.relevance }}]{% if user.is_department_manager or user.is_staff %}<a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">X</a><br>{% endif %}
-                {% endif %}
-            {% endfor %}</td>
-        </tr>
-        {% if user.is_department_manager or user.is_staff %}
-        <tr class="white">
-            <td class="col_detail1">Добавить отпуск</td>
-            <td><form method="post">
-                {% csrf_token %}
-                {# form.as_p #}
-                {# for field in form #}
-                <div class="fieldWrapper">
-                    {{ form.start.label_tag }} {{ form.start }}
-                </div>
-                <div class="fieldWrapper">
-                    {{ form.end.label_tag }} {{ form.end }}
-                </div>
-                {{ form.employee.as_hidden }}
+  </tr>
+  <tr class="white">
+      <td class="col_detail1">Отдел</td>
+      <td><a href="{% url 'vacations:by_department' employee.department.pk %}">{{ employee.department }}</a></td>
+  </tr>
+  <tr class="gray">
+      <td class="col_detail1">Дата начала работы</td>
+      <td>{{ employee.entry_date }}</td>
+  </tr>
+  <tr class="white">
+      <td class="col_detail1">Рейтинг</td>
+      <td>{{ employee.rating }}</td>
+  </tr>
+  <tr class="gray">
+      <td class="col_detail1">Замещает</td>
+      <td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+  </tr>
+  <tr class="white">
+      <td class="col_detail1">Отпускные дни</td>
+      <td>{{ employee.vacation_days }}</td>
+  </tr>
+  <tr class="gray">
+      <td class="col_detail1">Отпуска</td>
+      <td>{% for vacation in vacations %}
+          {% if vacation.employee.pk == employee.pk %}
+          {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }} [{{ vacation.relevance }}]{% if user.is_department_manager or user.is_staff %}<a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">X</a><br>{% endif %}
+          {% endif %}
+      {% endfor %}</td>
+  </tr>
+  {% if user.is_department_manager or user.is_staff %}
+  <tr class="white">
+      <td class="col_detail1">Добавить отпуск</td>
+      <td><form method="post">
+          {% csrf_token %}
+          {# form.as_p #}
+          {# for field in form #}
+          <div class="fieldWrapper">
+              {{ form.start.label_tag }} {{ form.start }}
+          </div>
+          <div class="fieldWrapper">
+              {{ form.end.label_tag }} {{ form.end }}
+          </div>
+          {{ form.employee.as_hidden }}
 
-                {% if form.errors %}
-                    {% for field in form %}
-                        {% for error in field.errors %}
-                            <div class="alert alert-danger">
-                                <strong>Field: {{ error|escape }}</strong>
-                            </div>
-                        {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
-                        <div class="alert alert-danger" style="color: red;">
-                            <strong>Non-Field: {{ error|escape }}</strong>
+          {% if form.errors %}
+              {% for field in form %}
+                  {% for error in field.errors %}
+                      <div class="alert alert-danger">
+                          <strong>Field: {{ error|escape }}</strong>
+                      </div>
+                  {% endfor %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                  <div class="alert alert-danger" style="color: red;">
+                      <strong>Non-Field: {{ error|escape }}</strong>
 
-                        </div>
-                    {% endfor %}
-                    <input type="submit" class="button" name="force_proceed" value="Игнорировать и добавить">
+                  </div>
+              {% endfor %}
+              <input type="submit" class="button" name="force_proceed" value="Игнорировать и добавить">
 
-                {% endif %}
+          {% endif %}
 
-                <input type="submit" class="button" value="Добавить">
-            </form></td>
-        </tr>
-        {% endif %}
-    </table>
-    <!--
-    <form method="post" action="/vacations/add/" name="Добавить отпуск">
-        {% csrf_token %}
-        <input type="hidden" name="csrfmiddlewaretoken" value="5uzDTcaVrnRmnqKEoeMBai4D7GOCVrSXuDj6NESZweJj80r5vRAtYkdE1EP1nv76">
-        <p><input type="hidden" name="employee" required="" id="id_employee" value="{{ employee.pk }}"></p>
-        <p><label for="id_start">Начало отпуска:</label> <input type="text" name="start" required="" id="id_start"></p>
-        <p><label for="id_end">Конец отпуска:</label> <input type="text" name="end" required="" id="id_end"></p>
-        <input type="submit" value="Добавить">
-    </form>
-
-    <embed src=" url 'add' empl=employee.pk " width="700" height="400">-->
-</section>
+          <input type="submit" class="button" value="Добавить">
+      </form></td>
+  </tr>
+  {% endif %}
+</table>
 {% endblock %}

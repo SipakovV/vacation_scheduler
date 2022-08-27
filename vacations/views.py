@@ -23,6 +23,30 @@ DEFAULT = 0
 VIEW = 1
 EDIT = 2
 
+MONTHS = [
+        'Янв',
+        'Фев',
+        'Мар',
+        'Апр',
+        'Май',
+        'Июн',
+        'Июл',
+        'Авг',
+        'Сен',
+        'Окт',
+        'Ноя',
+        'Дек',
+]
+
+
+def zip_month_vacation_days(current_department):
+    vacation_days_by_month = []
+    i = 0
+    for month in MONTHS:
+        vacation_days_by_month.append((month, current_department.vacation_days_by_month[i]))
+        i += 1
+    return vacation_days_by_month
+
 
 class DepartmentCreateView(CreateView):
     template_name = 'vacations/add_department.html'
@@ -210,7 +234,8 @@ class VacationCreateView(CreateView):
         context['employees'] = Employee.objects.all()
         context['vacations'] = Vacation.objects.all()
         context['departments'] = Department.objects.all()
-        context['vacation_days_by_month'] = employee.department.vacation_days_by_month
+        context['current_department'] = employee.department
+        context['vacation_days_by_month'] = zip_month_vacation_days(employee.department)
 
         return context
 
@@ -262,7 +287,8 @@ def by_department(request, department_id):
     vacations = Vacation.objects.all()
     departments = Department.objects.all()
     current_department = Department.objects.get(pk=department_id)
-    vacation_days_by_month = current_department.vacation_days_by_month
+
+    vacation_days_by_month = zip_month_vacation_days(current_department)
 
     user = request.user
 
@@ -273,8 +299,6 @@ def by_department(request, department_id):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
-
-
     context = {'employees': employees, 'departments': departments, 'vacations': vacations,
                'current_department': current_department, 'vacation_days_by_month': vacation_days_by_month}
     return render(request, 'vacations/by_department.html', context)
@@ -284,7 +308,6 @@ def by_department(request, department_id):
 def recalculate_department(request, department_id):
     employees = Employee.objects.filter(department=department_id)
     current_department = Department.objects.get(pk=department_id)
-    vacation_days_by_month = current_department.vacation_days_by_month
 
     user = request.user
 
