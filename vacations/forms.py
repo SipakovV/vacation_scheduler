@@ -92,6 +92,8 @@ class VacationForm(ModelForm):
         relevant_flag = False
         current_year_flag = False
 
+        cleaned_data['relevance'] = ARCHIVE
+
         if start > relevance_date:
             relevant_flag = True
             cleaned_data['relevance'] = RELEVANT

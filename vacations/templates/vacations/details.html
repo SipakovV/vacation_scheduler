@@ -1,17 +1,37 @@
 {% extends "layout/basic.html" %}
 
+{% load static %}
+
 {% block title %}{{ employee }}{% endblock %}
 
 {% block content %}
 <table class="table">
   <tr class="blue">
       <th class="col_detail1">ФИО</th>
-      <th class="col_detail2">{{ employee }}{% if user.employees_permission_level >= EDIT or user.is_staff %}<a href="{% url 'vacations:employee_update_form' employee.pk %}"><button class="button">Редактировать</button></a><a href="{% url 'vacations:employee_delete_form' employee.pk %}"><button class="button deletebutton">Удалить сотрудника</button></a>{% endif %}</th>
+      <th class="col_detail2">
+        {{ employee }}
+        {% if user.employees_permission_level >= EDIT or user.is_staff %}
+          <a class="" href="{% url 'vacations:employee_delete_form' employee.pk %}">
+            <button class="btn btn-danger btn-sm float-end"><img src="{% static 'images/trash.svg' %}" alt=""> Удалить</button>
+          </a>
+          <a class="" href="{% url 'vacations:employee_update_form' employee.pk %}">
+            <button class="btn btn-light btn-sm float-end"><img src="{% static 'images/pencil.svg' %}" alt=""> Редактировать</button>
+          </a>
+        {% endif %}
+      </th>
 
   </tr>
   <tr class="white">
+      <td class="col_detail1">Табельный номер</td>
+      <td>{{ employee.personnel_number }}</td>
+  </tr>
+  <tr class="white">
       <td class="col_detail1">Отдел</td>
-      <td><a href="{% url 'vacations:by_department' employee.department.pk %}">{{ employee.department }}</a></td>
+      <td><a class="" href="{% url 'vacations:by_department' current_department.pk %}"><strong>{{ current_department }}</strong></a></td>
+  </tr>
+  <tr class="white">
+      <td class="col_detail1">Должность</td>
+      <td>{{ employee.job_title }}</td>
   </tr>
   <tr class="gray">
       <td class="col_detail1">Дата начала работы</td>
@@ -23,55 +43,80 @@
   </tr>
   <tr class="gray">
       <td class="col_detail1">Замещает</td>
-      <td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+      <td>
+        {% if employee.replaces is null %}
+          Нет
+        {% else %}
+          <a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>
+        {% endif %}
+      </td>
   </tr>
   <tr class="white">
       <td class="col_detail1">Отпускные дни</td>
-      <td>{{ employee.vacation_days }}</td>
+      <td>{{ employee.vacation_days }} / {{ employee.max_vacation_days }}</td>
   </tr>
   <tr class="gray">
-      <td class="col_detail1">Отпуска</td>
-      <td>{% for vacation in vacations %}
-          {% if vacation.employee.pk == employee.pk %}
-          {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }} [{{ vacation.relevance }}]{% if user.is_department_manager or user.is_staff %}<a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">X</a><br>{% endif %}
-          {% endif %}
-      {% endfor %}</td>
+    <td class="col_detail1">Отпуска</td>
+    <td class="">
+      <ul class="list-group">
+        {% for vacation in vacations %}
+          <li class="list-group-item {% if vacation.relevance == PLANNED %}text-success{% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">
+            {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }} [{{ vacation.relevance }}]
+              {% if user.is_department_manager or user.is_staff %}
+                <a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">
+                  <img src="{% static 'images/trash.svg' %}" alt="X">
+                </a>
+              {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+    </td>
   </tr>
   {% if user.is_department_manager or user.is_staff %}
   <tr class="white">
-      <td class="col_detail1">Добавить отпуск</td>
-      <td><form method="post">
-          {% csrf_token %}
-          {# form.as_p #}
-          {# for field in form #}
-          <div class="fieldWrapper">
-              {{ form.start.label_tag }} {{ form.start }}
+    <td class="col_detail1">Добавить отпуск</td>
+    <td><form method="post" class="row g-2">
+      {% csrf_token %}
+      {# form.as_p #}
+      {# for field in form #}
+      
+        
+        <div class="col-auto">
+          {{ form.start.label_tag }}
+        </div>
+        <div class="col-auto">
+          <input type="date" name="start" required>
+        </div>
+      
+        <div class="col-auto">
+          {{ form.end.label_tag }}
+        </div>
+        <div class="col-auto">
+          <input type="date" name="end" required>
+        </div>
+      {{ form.employee.as_hidden }}
+
+      {% if form.errors %}
+        {% for field in form %}
+          {% for error in field.errors %}
+            <div class="alert alert-danger">
+              <strong>{{ error|escape }}</strong>
+            </div>
+          {% endfor %}
+        {% endfor %}
+        {% for error in form.non_field_errors %}
+          <div class="alert alert-danger" style="color: red;">
+            <strong>{{ error|escape }}</strong>
           </div>
-          <div class="fieldWrapper">
-              {{ form.end.label_tag }} {{ form.end }}
-          </div>
-          {{ form.employee.as_hidden }}
-
-          {% if form.errors %}
-              {% for field in form %}
-                  {% for error in field.errors %}
-                      <div class="alert alert-danger">
-                          <strong>Field: {{ error|escape }}</strong>
-                      </div>
-                  {% endfor %}
-              {% endfor %}
-              {% for error in form.non_field_errors %}
-                  <div class="alert alert-danger" style="color: red;">
-                      <strong>Non-Field: {{ error|escape }}</strong>
-
-                  </div>
-              {% endfor %}
-              <input type="submit" class="button" name="force_proceed" value="Игнорировать и добавить">
-
-          {% endif %}
-
-          <input type="submit" class="button" value="Добавить">
-      </form></td>
+        {% endfor %}
+        <div class="col-auto">
+          <input type="submit" class="btn btn-outline-primary" name="force_proceed" value="Игнорировать и добавить">
+        </div>
+      {% endif %}
+      <div class="col-auto">
+        <input type="submit" class="btn btn-primary" value="Добавить">
+      </div>
+    </form></td>
   </tr>
   {% endif %}
 </table>

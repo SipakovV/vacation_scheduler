@@ -277,6 +277,23 @@ class VacationDeleteView(DeleteView):
         #print('get_success_url employee_id = ', employee_id)
         return reverse_lazy('vacations:details', kwargs={'employee_id': employee_id})
 
+    def get_context_data(self, **kwargs):
+        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
+        context = super().get_context_data(**kwargs)
+
+        kwargs['user'] = self.request.user
+
+        vacation = Vacation.objects.get(pk=int(self.kwargs['pk']))
+        employee = Employee.objects.get(pk=vacation.employee.pk)
+        context['employee'] = employee
+        context['employees'] = Employee.objects.all()
+        context['vacations'] = Vacation.objects.all()
+        context['departments'] = Department.objects.all()
+        context['current_department'] = employee.department
+        context['vacation_days_by_month'] = zip_month_vacation_days(employee.department)
+
+        return context
+
     #def get_success_url(self):
     #    return reverse_lazy('vacations:details', kwargs={'employee_id': self.kwargs['employee_id']})
 
