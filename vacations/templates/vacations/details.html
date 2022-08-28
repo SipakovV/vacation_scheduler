@@ -11,9 +11,7 @@
       <th class="col_detail2">
         {{ employee }}
         {% if user.employees_permission_level >= EDIT or user.is_staff %}
-          <a class="" href="{% url 'vacations:employee_delete_form' employee.pk %}">
-            <button class="btn btn-danger btn-sm float-end"><img src="{% static 'images/trash.svg' %}" alt=""> Удалить</button>
-          </a>
+          
           <a class="" href="{% url 'vacations:employee_update_form' employee.pk %}">
             <button class="btn btn-light btn-sm float-end"><img src="{% static 'images/pencil.svg' %}" alt=""> Редактировать</button>
           </a>
@@ -31,7 +29,7 @@
   </tr>
   <tr class="white">
       <td class="col_detail1">Должность</td>
-      <td>{{ employee.job_title }}</td>
+      <td>{{ employee.specialty }}</td>
   </tr>
   <tr class="gray">
       <td class="col_detail1">Дата начала работы</td>
@@ -58,17 +56,30 @@
   <tr class="gray">
     <td class="col_detail1">Отпуска</td>
     <td class="">
-      <ul class="list-group">
-        {% for vacation in vacations %}
-          <li class="list-group-item {% if vacation.relevance == PLANNED %}text-success{% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">
-            {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }} [{{ vacation.relevance }}]
-              {% if user.is_department_manager or user.is_staff %}
-                <a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">
-                  <img src="{% static 'images/trash.svg' %}" alt="X">
-                </a>
-              {% endif %}
-          </li>
-        {% endfor %}
+      <ul class="table">
+        
+          {% for vacation in vacations %}
+            <li class="list-group-item">
+              <ul class="list-group list-group-horizontal border-0">
+                <li class="list-group-item border-0 w-25
+                {% if vacation.relevance == PLANNED %}text-success
+            {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.start }}</li>
+                <li class="list-group-item border-0 w-10
+                {% if vacation.relevance == PLANNED %}text-success
+            {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">-</li>
+                <li class="list-group-item border-0 w-50
+                {% if vacation.relevance == PLANNED %}text-success
+            {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.end }}</li>
+                <li class="list-group-item border-0 w-25">
+                  {% if user.is_department_manager or user.is_staff %}
+                    <a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">
+                      <button type="button" class="btn-close btn-sm align-middle float-end" aria-label="Close" title="Удалить"></button>
+                    </a>
+                  {% endif %}
+                </li>
+              </ul>
+            </li>
+          {% endfor %}
       </ul>
     </td>
   </tr>

@@ -5,6 +5,7 @@
 <head>
   <meta charset="UTF-8">
   <title>{% block title %}Главная{% endblock %} :: График отпусков</title>
+  <link rel="icon" type="image/x-icon" href="{% static 'images/favicon.svg' %}">
   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
 
   <!--<link rel="stylesheet" type="text/css" href="{# static 'vacations/style.css' #}">-->
@@ -16,6 +17,7 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        {% if user.is_authenticated %}
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           {% if user.employees_permission_level >= VIEW or user.is_staff %}
           <li class="nav-item">
@@ -46,7 +48,7 @@
           </li>
           {% endif %}
         </ul>
-
+      {% endif %}
       </div>
       <div class="container-right border my-auto">
         {% if user.is_authenticated %}
@@ -67,7 +69,11 @@
   </nav>
 
   {% for message in messages %}
-      <p id="message">{{ message }}</p>
+      <div id="message" role="alert"
+           class="alert alert-dismissable fade show {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+        {{ message }}
+        <button type="button" class="btn-close float-end" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
   {% endfor %}
 
   <div class="container-fluid min-vh-100 d-flex flex-column mx-auto">
@@ -78,7 +84,7 @@
         {% if current_department.full_title is not None %}<span class="d-none d-sm-inline">{{ current_department.full_title }}</span>{% endif %}
         <div class="list-group">
           {% if user.is_department_manager or user.employees_permission_level >= edit or user.is_staff %}
-            <a href="{% url 'vacations:add_employee' %}" class="list-group-item list-group-item-action">Добавить сотрудника</a>
+            <a href="{% url 'vacations:add_employee' current_department.pk %}" class="list-group-item list-group-item-action">Добавить сотрудника</a>
           {% endif %}
           {% if user.is_department_manager or user.employees_permission_level >= VIEW or user.is_staff %}
             <a href="{% url 'vacations:recalculate_department' current_department.pk %}" class="list-group-item list-group-item-action">Пересчитать отдел</a>

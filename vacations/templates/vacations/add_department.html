@@ -1,14 +1,16 @@
 {% extends "layout/basic.html" %}
 
 {% block title %}Добавление отдела{% endblock %}
-{% block add_department %}class="active"{% endblock %}
+
+{% block leftbar %}
+{% endblock %}
 
 {% block content %}
 <section>
     <h3>Добавление отдела</h3><hr>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_ul }}
+        {{ form.as_table }}
         <input type="submit" class="button" value="Добавить">
     </form>
 </section>

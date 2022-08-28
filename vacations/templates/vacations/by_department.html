@@ -12,22 +12,26 @@
     </div>
   </div>
 
-  <table class="table table-sm my-1">
-    <tr class="blue">
-      <th class="col1">Место</th>
-      <th class="col2">Рейтинг</th>
-      <th class="col3">ФИО</th>
-      <th class="col4">Замещает</th>
-      <th class="col5">Отпуска</th>
-    </tr>
-    {% for employee in employees %}
-      <tr class="{% cycle 'white' 'gray' %}"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'vacations:details' employee.pk %}">{{ employee }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
-        <td>
-        {% for vacation in vacations %}
-          {% if vacation.employee.pk == employee.pk %}
-            {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
-          {% endif %}
-        {% endfor %}</td></tr>
-    {% endfor %}
+  <table class="table table-striped table-sm my-1">
+    <thead>
+      <tr class="blue">
+        <th class="col1">Место</th>
+        <th class="col2">Рейтинг</th>
+        <th class="col3">ФИО</th>
+        <th class="col4">Замещает</th>
+        <th class="col5">Отпуска</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for employee in employees %}
+        <tr class="{% cycle 'white' 'gray' %}"><td>{{ forloop.counter }}</td><td>{{ employee.rating }}</td><td><a href="{% url 'vacations:details' employee.pk %}">{{ employee }}</a></td><td>{% if employee.replaces is null %}Нет{% else %}<a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>{% endif %}</td>
+          <td>
+          {% for vacation in vacations %}
+            {% if vacation.employee.pk == employee.pk %}
+              {{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}<br>
+            {% endif %}
+          {% endfor %}</td></tr>
+      {% endfor %}
+    </tbody>
   </table>
 {% endblock %}

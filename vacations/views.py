@@ -1,6 +1,7 @@
 import datetime
 import logging
 
+from django.contrib.messages.views import SuccessMessageMixin
 from openpyxl import Workbook, load_workbook
 from openpyxl.writer.excel import save_virtual_workbook
 
@@ -14,7 +15,7 @@ from django.http import HttpResponse
 from django.utils.encoding import escape_uri_path
 
 from .models import Employee, Department, Vacation, ARCHIVE, RELEVANT, PLANNED
-from .forms import VacationForm, EmployeeForm, DepartmentForm
+from .forms import VacationForm, EmployeeForm, DepartmentForm, EmployeeUpdateForm
 from .openpyxl_config import default_entry_style, remarks_font
 
 logger = logging.getLogger(__name__)
@@ -41,17 +42,24 @@ MONTHS = [
 
 def zip_month_vacation_days(current_department):
     vacation_days_by_month = []
-    i = 0
-    for month in MONTHS:
-        vacation_days_by_month.append((month, current_department.vacation_days_by_month[i]))
-        i += 1
+    if len(current_department.vacation_days_by_month) > 0:
+        i = 0
+        for month in MONTHS:
+            vacation_days_by_month.append((month, current_department.vacation_days_by_month[i]))
+            i += 1
+    else:
+        i = 0
+        for month in MONTHS:
+            vacation_days_by_month.append((month, 0))
+            i += 1
     return vacation_days_by_month
 
 
-class DepartmentCreateView(CreateView):
+class DepartmentCreateView(SuccessMessageMixin, CreateView):
     template_name = 'vacations/add_department.html'
     form_class = DepartmentForm
     success_url = reverse_lazy('vacations:index')
+    success_message = 'Отдел успешно добавлен'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -73,11 +81,28 @@ class DepartmentCreateView(CreateView):
                 return redirect('vacations:index')
         return super(DepartmentCreateView, self).post(args, kwargs)
 
+    def get_context_data(self, **kwargs):
+        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
+        context = super().get_context_data(**kwargs)
 
-class DepartmentDeleteView(DeleteView):
+        kwargs['user'] = self.request.user
+
+        context['employees'] = Employee.objects.all()
+        context['vacations'] = Vacation.objects.all()
+        context['departments'] = Department.objects.all()
+
+        return context
+
+    def get_success_url(self):
+        self.object.init_vacation_days()
+        return reverse_lazy('vacations:by_department', kwargs={'department_id': self.object.pk})
+
+
+class DepartmentDeleteView(SuccessMessageMixin, DeleteView):
     template_name = 'vacations/delete_department.html'
     model = Department
     success_url = reverse_lazy('vacations:index')
+    success_message = 'Отдел успешно удалён'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -99,11 +124,27 @@ class DepartmentDeleteView(DeleteView):
                 return redirect('vacations:index')
         return super(DepartmentDeleteView, self).post(args, kwargs)
 
+    def get_context_data(self, **kwargs):
+        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
+        context = super().get_context_data(**kwargs)
 
-class EmployeeCreateView(CreateView):
+        kwargs['user'] = self.request.user
+
+        department = Department.objects.get(pk=self.kwargs['department_id'])
+        context['employees'] = Employee.objects.all()
+        context['vacations'] = Vacation.objects.all()
+        context['departments'] = Department.objects.all()
+        context['current_department'] = department
+        context['vacation_days_by_month'] = zip_month_vacation_days(department)
+
+        return context
+
+
+class EmployeeCreateView(SuccessMessageMixin, CreateView):
     template_name = 'vacations/add_employee.html'
     form_class = EmployeeForm
-    success_url = reverse_lazy('vacations:index')
+    #success_url = reverse_lazy('vacations:index')
+    success_message = 'Запись успешно добавлена'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -125,13 +166,33 @@ class EmployeeCreateView(CreateView):
                 return redirect('vacations:index')
         return super(EmployeeCreateView, self).post(args, kwargs)
 
+    def get_context_data(self, **kwargs):
+        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
+        context = super().get_context_data(**kwargs)
 
-class EmployeeUpdateView(UpdateView):
+        kwargs['user'] = self.request.user
+
+        department = Department.objects.get(pk=int(self.kwargs['department_id']))
+        context['employees'] = Employee.objects.all()
+        context['vacations'] = Vacation.objects.all()
+        context['departments'] = Department.objects.all()
+        context['current_department'] = department
+        context['vacation_days_by_month'] = zip_month_vacation_days(department)
+
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('vacations:details', kwargs={'employee_id': self.object.pk})
+
+
+class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
     template_name = 'vacations/edit_employee.html'
     success_url = reverse_lazy('vacations:index')
     model = Employee
-    fields = ('department', 'replaces', 'entry_date', 'vacation_days')
+    form_class = EmployeeUpdateForm
+    #fields = ('personnel_number', 'department', 'specialty', 'replaces', 'entry_date', 'max_vacation_days')
     template_name_suffix = '_update_form'
+    success_message = 'Запись успешно обновлена'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -139,32 +200,50 @@ class EmployeeUpdateView(UpdateView):
 
     def get(self, *args, **kwargs):
         user = self.request.user
-
+        employee = Employee.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT:
+            if not user.employees_permission_level >= EDIT \
+                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:
                 messages.warning(self.request, 'Недостаточно прав для редактирования данных сотрудников')
                 return redirect('vacations:details', kwargs['pk'])
         return super(EmployeeUpdateView, self).get(args, kwargs)
 
     def post(self, *args, **kwargs):
         user = self.request.user
-
+        employee = Employee.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT:
+            if not user.employees_permission_level >= EDIT \
+                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:
                 messages.warning(self.request, 'Недостаточно прав для редактирования данных сотрудников')
                 return redirect('vacations:details', kwargs['pk'])
         return super(EmployeeUpdateView, self).post(args, kwargs)
-    
+
+    def get_initial(self):
+        base_initial = super().get_initial()
+        return base_initial
+
     def get_context_data(self, **kwargs):
+        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
         context = super().get_context_data(**kwargs)
-        context['employee'] = Employee.objects.get(pk=int(self.kwargs['pk']))
+
+        kwargs['user'] = self.request.user
+
+        employee = Employee.objects.get(pk=int(self.kwargs['pk']))
+        context['employee'] = employee
+        context['employees'] = Employee.objects.all()
+        context['vacations'] = Vacation.objects.all()
+        context['departments'] = Department.objects.all()
+        context['current_department'] = employee.department
+        context['vacation_days_by_month'] = zip_month_vacation_days(employee.department)
+
         return context
 
 
-class EmployeeDeleteView(DeleteView):
+class EmployeeDeleteView(SuccessMessageMixin, DeleteView):
     template_name = 'vacations/delete_employee.html'
     model = Employee
     success_url = reverse_lazy('vacations:index')
+    success_message = 'Запись успешно удалена'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -172,24 +251,45 @@ class EmployeeDeleteView(DeleteView):
 
     def get(self, *args, **kwargs):
         user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT:  # ++ if not HR
+            if not user.employees_permission_level >= EDIT \
+                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:  # ++ if not HR
                 messages.warning(self.request, 'Недостаточно прав для удаления сотрудников')
                 return redirect('vacations:details', kwargs['employee_id'])
         return super(EmployeeDeleteView, self).get(args, kwargs)
 
     def post(self, *args, **kwargs):
         user = self.request.user
+        employee = Employee.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT:  # ++ if not HR
+            if not user.employees_permission_level >= EDIT \
+                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:  # ++ if not HR
                 messages.warning(self.request, 'Недостаточно прав для удаления сотрудников')
                 return redirect('vacations:details', kwargs['employee_id'])
         return super(EmployeeDeleteView, self).post(args, kwargs)
 
+    def get_context_data(self, **kwargs):
+        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
+        context = super().get_context_data(**kwargs)
 
-class VacationCreateView(CreateView):
+        kwargs['user'] = self.request.user
+
+        employee = Employee.objects.get(pk=int(self.kwargs['pk']))
+        context['employee'] = employee
+        context['employees'] = Employee.objects.all()
+        context['vacations'] = Vacation.objects.all()
+        context['departments'] = Department.objects.all()
+        context['current_department'] = employee.department
+        context['vacation_days_by_month'] = zip_month_vacation_days(employee.department)
+
+        return context
+
+
+class VacationCreateView(SuccessMessageMixin, CreateView):
     template_name = 'vacations/details.html'
     form_class = VacationForm
+    success_message = 'Запись успешно добавлена'
     #employee_id = '0'
 
     @method_decorator(login_required)
@@ -198,16 +298,20 @@ class VacationCreateView(CreateView):
 
     def get(self, *args, **kwargs):
         user = self.request.user
+        vacation = Vacation.objects.get(pk=self.kwargs['employee_id'])
         if not user.is_staff:
-            if not (user.employees_permission_level >= VIEW or user.bound_employee.pk == self.kwargs['employee_id'] or user.is_department_manager):
+            if not (user.employees_permission_level >= VIEW
+                    or user.bound_employee.pk == self.kwargs['employee_id']
+                    or user.is_department_manager and user.bound_employee.department.pk == vacation.employee.department.pk):
                 messages.warning(self.request, 'Недостаточно прав для доступа к странице')
                 return redirect('vacations:by_department', user.bound_employee.department.pk)
         return super(VacationCreateView, self).get(args, kwargs)
 
     def post(self, *args, **kwargs):
         user = self.request.user
+        vacation = Vacation.objects.get(pk=self.kwargs['employee_id'])
         if not user.is_staff:
-            if not user.is_department_manager:
+            if not (user.is_department_manager and user.bound_employee.department.pk == vacation.employee.department.pk):
                 messages.warning(self.request, 'Недостаточно прав для добавления отпусков')
                 return redirect('vacations:by_department', user.bound_employee.department.pk)
         return super(VacationCreateView, self).post(args, kwargs)
@@ -229,10 +333,10 @@ class VacationCreateView(CreateView):
 
         kwargs['user'] = self.request.user
 
-        employee = Employee.objects.get(pk=int(self.kwargs['employee_id']))
+        employee = Employee.objects.get(pk=self.kwargs['employee_id'])
         context['employee'] = employee
         context['employees'] = Employee.objects.all()
-        context['vacations'] = Vacation.objects.all()
+        context['vacations'] = Vacation.objects.filter(employee=employee)
         context['departments'] = Department.objects.all()
         context['current_department'] = employee.department
         context['vacation_days_by_month'] = zip_month_vacation_days(employee.department)
@@ -240,11 +344,11 @@ class VacationCreateView(CreateView):
         return context
 
 
-class VacationDeleteView(DeleteView):
+class VacationDeleteView(SuccessMessageMixin, DeleteView):
     template_name = 'vacations/delete_vacation.html'
     model = Vacation
-    success_url = reverse_lazy('vacations:index')
-    #success_url = reverse_lazy('vacations:details', kwargs={'employee_id': instance.id})
+    #success_url = reverse_lazy('vacations:index')
+    success_message = 'Запись успешно удалена'
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
@@ -252,18 +356,20 @@ class VacationDeleteView(DeleteView):
 
     def get(self, *args, **kwargs):
         user = self.request.user
+        vacation = Vacation.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT:  # ++ if not HR
+            if not (user.employees_permission_level >= EDIT or user.is_department_manager and user.bound_employee.department.pk == vacation.employee.department.pk):
                 messages.warning(self.request, 'Недостаточно прав для удаления отпусков')
-                return redirect('vacations:details', kwargs['employee_id'])
+                return redirect('vacations:details', kwargs['pk'])
         return super(VacationDeleteView, self).get(args, kwargs)
 
     def post(self, *args, **kwargs):
         user = self.request.user
+        vacation = Vacation.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT:  # ++ if not HR
+            if not (user.employees_permission_level >= EDIT or user.is_department_manager and user.bound_employee.department.pk == vacation.employee.department.pk):
                 messages.warning(self.request, 'Недостаточно прав для удаления отпусков')
-                return redirect('vacations:details', kwargs['employee_id'])
+                return redirect('vacations:details', kwargs['pk'])
         return super(VacationDeleteView, self).post(args, kwargs)
 
     def form_valid(self, *args, **kwargs):
@@ -284,7 +390,7 @@ class VacationDeleteView(DeleteView):
         kwargs['user'] = self.request.user
 
         vacation = Vacation.objects.get(pk=int(self.kwargs['pk']))
-        employee = Employee.objects.get(pk=vacation.employee.pk)
+        employee = vacation.employee
         context['employee'] = employee
         context['employees'] = Employee.objects.all()
         context['vacations'] = Vacation.objects.all()
@@ -293,9 +399,6 @@ class VacationDeleteView(DeleteView):
         context['vacation_days_by_month'] = zip_month_vacation_days(employee.department)
 
         return context
-
-    #def get_success_url(self):
-    #    return reverse_lazy('vacations:details', kwargs={'employee_id': self.kwargs['employee_id']})
 
 
 @login_required
@@ -312,7 +415,8 @@ def by_department(request, department_id):
     #current_department.test_vacation_days()
 
     if not user.is_staff:
-        if not (user.employees_permission_level >= VIEW or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
+        if not (user.employees_permission_level >= VIEW
+                or user.bound_employee.department.pk == department_id):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
@@ -329,7 +433,8 @@ def recalculate_department(request, department_id):
     user = request.user
 
     if not user.is_staff:
-        if not (user.employees_permission_level >= VIEW or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
+        if not (user.employees_permission_level >= VIEW
+                or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
@@ -436,7 +541,8 @@ def export_t7_department(request, department_id):
     user = request.user
 
     if not user.is_staff:
-        if not (user.employees_permission_level >= VIEW or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
+        if not (user.employees_permission_level >= VIEW
+                or (user.bound_employee.department.pk == department_id and user.is_department_manager)):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
@@ -465,6 +571,7 @@ def export_t7_all(request):
     response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/ms-excel')
     response['Content-Disposition'] = "attachment; filename=" + escape_uri_path(filename)
     return response
+
 
 '''
 @login_required

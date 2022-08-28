@@ -30,7 +30,7 @@ class EmployeeForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["entry_date"].widget = DateInput(format='%d-%m-%Y')
+        self.fields['entry_date'].widget = DateInput(format='%d-%m-%Y')
         self.fields['vacation_days'].widget = HiddenInput()
         self.fields['vacation_days'].required = False
         self.fields['vacation_days'].initial = 38
@@ -43,6 +43,15 @@ class EmployeeForm(ModelForm):
     def clean(self):
         cleaned_data = super(EmployeeForm, self).clean()
         cleaned_data['vacation_days'] = cleaned_data['max_vacation_days']
+
+
+class EmployeeUpdateForm(ModelForm):
+    class Meta:
+        model = Employee
+        exclude = (
+            'department',
+            'vacation_days',
+        )
 
 
 class DepartmentForm(ModelForm):
