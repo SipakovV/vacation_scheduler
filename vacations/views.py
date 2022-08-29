@@ -181,6 +181,11 @@ class EmployeeCreateView(SuccessMessageMixin, CreateView):
 
         return context
 
+    def get_initial(self, *args, **kwargs):
+        initial = super(EmployeeCreateView, self).get_initial(**kwargs)
+        initial['department'] = get_object_or_404(Department, pk=self.kwargs.get('department_id'))
+        return initial
+
     def get_success_url(self):
         return reverse_lazy('vacations:details', kwargs={'employee_id': self.object.pk})
 
@@ -298,20 +303,20 @@ class VacationCreateView(SuccessMessageMixin, CreateView):
 
     def get(self, *args, **kwargs):
         user = self.request.user
-        vacation = Vacation.objects.get(pk=self.kwargs['employee_id'])
+        employee = Employee.objects.get(pk=self.kwargs['employee_id'])
         if not user.is_staff:
             if not (user.employees_permission_level >= VIEW
                     or user.bound_employee.pk == self.kwargs['employee_id']
-                    or user.is_department_manager and user.bound_employee.department.pk == vacation.employee.department.pk):
+                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk):
                 messages.warning(self.request, 'Недостаточно прав для доступа к странице')
                 return redirect('vacations:by_department', user.bound_employee.department.pk)
         return super(VacationCreateView, self).get(args, kwargs)
 
     def post(self, *args, **kwargs):
         user = self.request.user
-        vacation = Vacation.objects.get(pk=self.kwargs['employee_id'])
+        employee = Employee.objects.get(pk=self.kwargs['employee_id'])
         if not user.is_staff:
-            if not (user.is_department_manager and user.bound_employee.department.pk == vacation.employee.department.pk):
+            if not (user.is_department_manager and user.bound_employee.department.pk == employee.department.pk):
                 messages.warning(self.request, 'Недостаточно прав для добавления отпусков')
                 return redirect('vacations:by_department', user.bound_employee.department.pk)
         return super(VacationCreateView, self).post(args, kwargs)
@@ -488,13 +493,17 @@ def generate_t7_form(department_id=None):
                 if type(ws.cell(row=current_row, column=1)).__name__ == 'MergedCell':
                     logger.debug('merged cell detected')
                     ws.unmerge_cells(start_row=current_row, start_column=1, end_row=current_row, end_column=2)
-                ws.cell(row=current_row, column=1, value=str(department))
+                ws.cell(row=current_row, column=1, value=' '+str(department))
 
-                ws.cell(row=current_row, column=2, value='specialty')
-                ws.cell(row=current_row, column=3, value=str(employee))
-                ws.cell(row=current_row, column=4, value='id_number')
-                ws.cell(row=current_row, column=5, value=vacation_calendar_days)
-                ws.cell(row=current_row, column=7, value=str(vacation.start))
+                if employee.specialty is not None:
+                    specialty_str = employee.specialty
+                else:
+                    specialty_str = ''
+                ws.cell(row=current_row, column=2, value=' '+specialty_str)
+                ws.cell(row=current_row, column=3, value=' '+str(employee))
+                ws.cell(row=current_row, column=4, value=' '+str(employee.personnel_number))
+                ws.cell(row=current_row, column=5, value=' '+str(vacation_calendar_days))
+                ws.cell(row=current_row, column=7, value=' '+str(vacation.start))
                 ws.merge_cells(start_row=current_row, start_column=5, end_row=current_row, end_column=6)
                 ws.cell(row=current_row, column=8, value='')
                 ws.cell(row=current_row, column=9, value='')
@@ -520,14 +529,19 @@ def generate_t7_form(department_id=None):
                 ws.merge_cells(start_row=current_row - employee_vacations_count + 1, start_column=4,
                                end_row=current_row, end_column=4)
 
-    ws.row_dimensions[current_row + 2].height = 35
-    ws.row_dimensions[current_row + 3].height = 12
-    ws.row_dimensions[current_row + 4].height = 35
-    ws.row_dimensions[current_row + 5].height = 12
-    ws.row_dimensions[current_row + 6].height = 35
-    ws.row_dimensions[current_row + 7].height = 12
+    if entries_count % 2 == 1:
+        _init = 2
+    else:
+        _init = 1
 
-    for row in ws.iter_rows(min_row=20, max_col=17, max_row=current_row):
+    ws.row_dimensions[current_row + _init].height = 35
+    ws.row_dimensions[current_row + _init + 1].height = 12
+    ws.row_dimensions[current_row + _init + 2].height = 35
+    ws.row_dimensions[current_row + _init + 3].height = 12
+    ws.row_dimensions[current_row + _init + 4].height = 35
+    ws.row_dimensions[current_row + _init + 5].height = 12
+
+    for row in ws.iter_rows(min_row=20, max_col=17, max_row=current_row-2+_init):
         for cell in row:
             cell.style = 'default_entry_style'
             if cell.column == 15:

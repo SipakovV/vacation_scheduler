@@ -13,12 +13,12 @@ from .models import Employee, Vacation, Department, RELEVANT, ARCHIVE, PLANNED
 logger = logging.getLogger(__name__)
 
 
-class DateInput(DateInput):
+class CustomDateInput(DateInput):
     input_type = "date"
 
     def __init__(self, **kwargs):
         #kwargs["format"] = "%Y-%m-%d"
-        #kwargs["format"] = "%m-%d-%Y"
+        #kwargs['format'] = "%d-%m-%Y"
         super().__init__(**kwargs)
 
 
@@ -30,7 +30,7 @@ class EmployeeForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['entry_date'].widget = DateInput(format='%d-%m-%Y')
+        self.fields['entry_date'].widget = CustomDateInput(format='%d/%m/%Y')
         self.fields['vacation_days'].widget = HiddenInput()
         self.fields['vacation_days'].required = False
         self.fields['vacation_days'].initial = 38
@@ -49,9 +49,18 @@ class EmployeeUpdateForm(ModelForm):
     class Meta:
         model = Employee
         exclude = (
-            'department',
             'vacation_days',
+            'rating',
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['entry_date'].widget = DateInput(format='%d.%m.%Y')
+
+        for name in self.fields.keys():
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control',
+            })
 
 
 class DepartmentForm(ModelForm):
@@ -59,11 +68,15 @@ class DepartmentForm(ModelForm):
         model = Department
         fields = ('title', 'full_title')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.fields.keys():
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control',
+            })
+
 
 class VacationForm(ModelForm):
-    #forms.IntegerField(required = False)
-    #force_proceed = BooleanField(initial=False)
-
     class Meta:
         model = Vacation
         fields = ('start', 'end', 'employee', 'relevance')
@@ -79,16 +92,20 @@ class VacationForm(ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        #print('kwargs(forms.init) = ', kwargs)
         super().__init__(*args, **kwargs)
         self.fields['employee'].widget = HiddenInput()
         self.fields['relevance'].widget = HiddenInput()
         self.fields['relevance'].required = False
-        self.fields['start'].widget = DateInput(format='%d-%m-%Y')
-        self.fields['end'].widget = DateInput(format='%d-%m-%Y')
+        self.fields['start'].widget = CustomDateInput(format='%d/%m/%Y')
+        self.fields['end'].widget = CustomDateInput(format='%d/%m/%Y')
         self.relevance_init = ARCHIVE
         #self.fields['force_proceed'].initial = False
         #print('kwargs(forms.init).initial = ', kwargs['initial']['employee'])
+
+        for name in self.fields.keys():
+            self.fields[name].widget.attrs.update({
+                'class': 'form-control',
+            })
 
     def clean(self):
         cleaned_data = super(VacationForm, self).clean()

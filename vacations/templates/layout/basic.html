@@ -54,14 +54,14 @@
         {% if user.is_authenticated %}
           <div class="container">
             {% if user.bound_employee is not None %}
-            <a class="nav-link" href="{% url 'vacations:details' user.bound_employee.pk %}">{{ user }}</a>
+              <a class="nav-link" href="{% url 'vacations:details' user.bound_employee.pk %}">{{ user }}</a>
             {% else %}
-            <a class="nav-link">{{ user }}</a>
+              <a class="nav-link text-dark">{{ user }}</a>
+            {% endif %}
           </div>
-        {% endif %}
-        <div class="container"><a class="nav-link" href="{% url 'accounts:logout' %}">Выход</a></div>
+          <div class="container"><a class="nav-link" href="{% url 'accounts:logout' %}">Выход</a></div>
         {% else %}
-        <a href="{% url 'accounts:login' %}">Вход в систему</a>
+          <a href="{% url 'accounts:login' %}">Вход в систему</a>
         {% endif %}
       </div>
     </div>
@@ -80,15 +80,23 @@
     <div class="row flex-grow-1">
       <div class="col-md-2 border px-2 py-1">
         {% block leftbar %}
-        <span class="fs-5 d-none d-sm-inline"><a class="nav-link text-center" href="{% url 'vacations:by_department' current_department.pk %}"><strong>{{ current_department }}</strong></a></span>
-        {% if current_department.full_title is not None %}<span class="d-none d-sm-inline">{{ current_department.full_title }}</span>{% endif %}
+        <div class="fs-5 d-none d-sm-inline bg-primary"><a class="nav-link text-center" href="{% url 'vacations:by_department' current_department.pk %}"><strong>{{ current_department }}</strong></a></div>
+        {% if current_department.full_title is not None %}<div class="container-fluid text-center mb-2">{{ current_department.full_title }}</div>{% endif %}
         <div class="list-group">
           {% if user.is_department_manager or user.employees_permission_level >= edit or user.is_staff %}
             <a href="{% url 'vacations:add_employee' current_department.pk %}" class="list-group-item list-group-item-action">Добавить сотрудника</a>
           {% endif %}
           {% if user.is_department_manager or user.employees_permission_level >= VIEW or user.is_staff %}
-            <a href="{% url 'vacations:recalculate_department' current_department.pk %}" class="list-group-item list-group-item-action">Пересчитать отдел</a>
-            <a href="{% url 'vacations:export_t7_department' current_department.pk %}" class="list-group-item list-group-item-action">Экспорт формы Т-7</a>
+            <a href="{% url 'vacations:recalculate_department' current_department.pk %}"
+               class="list-group-item list-group-item-action"
+               title="Пересчитать значения отпускных дней по месяцам и коэффицентов 'отпускного счастья' на основе заданных отпусков">
+              Пересчитать отдел
+            </a>
+            <a href="{% url 'vacations:export_t7_department' current_department.pk %}"
+               class="list-group-item list-group-item-action"
+               title="Экспортировать данные об отпусках текущего года в форму Т-7">
+              Экспорт формы Т-7
+            </a>
         </div>
         <div class="container border">
           Отпускные дни по месяцам:
@@ -100,7 +108,14 @@
           </table>
         </div>
         {% endif %}
-        
+        <div class="container-fluid px-0">
+          <ul class="list-group mx-0 px-0">
+            <li class="list-group-item mx-0 px-1">Цветовые обозначения отпусков:</li>
+            <li class="list-group-item my-0 py-0 mx-0 px-1 text-success">За текущий год</li>
+            <li class="list-group-item my-0 py-0 mx-0 px-1">За последние 3 года</li>
+            <li class="list-group-item my-0 py-0 mx-0 px-1 text-secondary">За предыдущие периоды</li>
+          </ul>
+        </div>
         {% endblock %}
       </div>
       <div class="col-md-10 border px-3 py-2">

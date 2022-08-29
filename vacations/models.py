@@ -33,8 +33,8 @@ PLANNED = 2
 
 
 class Department(models.Model):
-    title = models.CharField(max_length=50, verbose_name='Код отдела', unique=True)
-    full_title = models.CharField(max_length=150, verbose_name='Полное название отдела', blank=True, null=True)
+    title = models.CharField(max_length=50, verbose_name='Аббревиатура отдела', unique=True)
+    full_title = models.CharField(max_length=150, verbose_name='Название отдела', blank=True, null=True)
     vacation_days_by_month = ArrayField(
         models.IntegerField(default=0),
         size=12,

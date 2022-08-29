@@ -6,41 +6,48 @@
 
 {% block content %}
 <table class="table">
-  <tr class="blue">
-      <th class="col_detail1">ФИО</th>
-      <th class="col_detail2">
+  <thead>
+    <tr class="">
+      <th class="align-top">ФИО</th>
+      <th class="">
         {{ employee }}
+      
         {% if user.employees_permission_level >= EDIT or user.is_staff %}
           
           <a class="" href="{% url 'vacations:employee_update_form' employee.pk %}">
-            <button class="btn btn-light btn-sm float-end"><img src="{% static 'images/pencil.svg' %}" alt=""> Редактировать</button>
+            <button class="btn btn-light btn-sm float-end float-bottom"><img src="{% static 'images/pencil.svg' %}" alt=""> Редактировать</button>
           </a>
         {% endif %}
       </th>
-
-  </tr>
-  <tr class="white">
-      <td class="col_detail1">Табельный номер</td>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="">
+      <td class="">Табельный номер</td>
       <td>{{ employee.personnel_number }}</td>
-  </tr>
-  <tr class="white">
-      <td class="col_detail1">Отдел</td>
+    </tr>
+    <tr class="">
+      <td class="">Отдел</td>
       <td><a class="" href="{% url 'vacations:by_department' current_department.pk %}"><strong>{{ current_department }}</strong></a></td>
-  </tr>
-  <tr class="white">
-      <td class="col_detail1">Должность</td>
-      <td>{{ employee.specialty }}</td>
-  </tr>
-  <tr class="gray">
-      <td class="col_detail1">Дата начала работы</td>
+    </tr>
+    <tr class="">
+      <td class="">Должность</td>
+      <td>
+        {% if employee.specialty is not None %}
+          {{ employee.specialty }}
+        {% endif %}
+      </td>
+    </tr>
+    <tr class="">
+      <td class="">Дата начала работы</td>
       <td>{{ employee.entry_date }}</td>
-  </tr>
-  <tr class="white">
-      <td class="col_detail1">Рейтинг</td>
+    </tr>
+    <tr class="">
+      <td class="">Рейтинг</td>
       <td>{{ employee.rating }}</td>
-  </tr>
-  <tr class="gray">
-      <td class="col_detail1">Замещает</td>
+    </tr>
+    <tr class="">
+      <td class="">Замещает сотрудника</td>
       <td>
         {% if employee.replaces is null %}
           Нет
@@ -48,87 +55,88 @@
           <a href="{% url 'vacations:details' employee.replaces.pk %}">{{ employee.replaces }}</a>
         {% endif %}
       </td>
-  </tr>
-  <tr class="white">
-      <td class="col_detail1">Отпускные дни</td>
+    </tr>
+    <tr class="">
+      <td class="">Отпускные дни</td>
       <td>{{ employee.vacation_days }} / {{ employee.max_vacation_days }}</td>
-  </tr>
-  <tr class="gray">
-    <td class="col_detail1">Отпуска</td>
-    <td class="">
-      <ul class="table">
+    </tr>
+    <tr class="">
+      <td class="">Отпуска</td>
+      <td class="">
+        <ul class="list-group">
+          
+            {% for vacation in vacations %}
+              <li class="list-group-item">
+                <ul class="list-group list-group-horizontal border-0 my-0 py-0 mx-0 px-0">
+                  <li class="list-group-item border-0 w-25 my-0 py-0 mx-0 px-0
+                  {% if vacation.relevance == PLANNED %}text-success
+              {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.start }}</li>
+                  <li class="list-group-item border-0 w-10 my-0 py-0 ms-0 ps-4
+                  {% if vacation.relevance == PLANNED %}text-success
+              {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">-</li>
+                  <li class="list-group-item border-0 w-50 my-0 py-0 ms-0 ps-4
+                  {% if vacation.relevance == PLANNED %}text-success
+              {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.end }}</li>
+                  <li class="list-group-item border-0 w-25 my-0 py-0 mx-0 px-4">
+                    {% if user.is_department_manager or user.is_staff %}
+                      <a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">
+                        <button type="button" class="btn-close btn-sm align-middle float-end" aria-label="Close" title="Удалить"></button>
+                      </a>
+                    {% endif %}
+                  </li>
+                </ul>
+              </li>
+            {% endfor %}
+        </ul>
+      </td>
+    </tr>
+    {% if user.is_department_manager or user.is_staff %}
+    <tr class="">
+      <th class="">Добавить отпуск</th>
+      <td><form method="post" class="row g-2">
+        {% csrf_token %}
+        {# form.as_p #}
+        {# for field in form #}
         
-          {% for vacation in vacations %}
-            <li class="list-group-item">
-              <ul class="list-group list-group-horizontal border-0">
-                <li class="list-group-item border-0 w-25
-                {% if vacation.relevance == PLANNED %}text-success
-            {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.start }}</li>
-                <li class="list-group-item border-0 w-10
-                {% if vacation.relevance == PLANNED %}text-success
-            {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">-</li>
-                <li class="list-group-item border-0 w-50
-                {% if vacation.relevance == PLANNED %}text-success
-            {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.end }}</li>
-                <li class="list-group-item border-0 w-25">
-                  {% if user.is_department_manager or user.is_staff %}
-                    <a href="{% url 'vacations:vacation_delete_form' vacation.pk %}">
-                      <button type="button" class="btn-close btn-sm align-middle float-end" aria-label="Close" title="Удалить"></button>
-                    </a>
-                  {% endif %}
-                </li>
-              </ul>
-            </li>
+          
+          <div class="col-auto">
+            {{ form.start.label_tag }}
+          </div>
+          <div class="col-auto">
+            <input type="date" name="start" required>
+          </div>
+        
+          <div class="col-auto">
+            {{ form.end.label_tag }}
+          </div>
+          <div class="col-auto">
+            <input type="date" name="end" required>
+          </div>
+        {{ form.employee.as_hidden }}
+  
+        {% if form.errors %}
+          {% for field in form %}
+            {% for error in field.errors %}
+              <div class="alert alert-danger">
+                <strong>{{ error|escape }}</strong>
+              </div>
+            {% endfor %}
           {% endfor %}
-      </ul>
-    </td>
-  </tr>
-  {% if user.is_department_manager or user.is_staff %}
-  <tr class="white">
-    <td class="col_detail1">Добавить отпуск</td>
-    <td><form method="post" class="row g-2">
-      {% csrf_token %}
-      {# form.as_p #}
-      {# for field in form #}
-      
-        
-        <div class="col-auto">
-          {{ form.start.label_tag }}
-        </div>
-        <div class="col-auto">
-          <input type="date" name="start" required>
-        </div>
-      
-        <div class="col-auto">
-          {{ form.end.label_tag }}
-        </div>
-        <div class="col-auto">
-          <input type="date" name="end" required>
-        </div>
-      {{ form.employee.as_hidden }}
-
-      {% if form.errors %}
-        {% for field in form %}
-          {% for error in field.errors %}
-            <div class="alert alert-danger">
+          {% for error in form.non_field_errors %}
+            <div class="alert alert-danger" style="color: red;">
               <strong>{{ error|escape }}</strong>
             </div>
           {% endfor %}
-        {% endfor %}
-        {% for error in form.non_field_errors %}
-          <div class="alert alert-danger" style="color: red;">
-            <strong>{{ error|escape }}</strong>
+          <div class="col-auto">
+            <input type="submit" class="btn btn-outline-primary" name="force_proceed" value="Игнорировать и добавить">
           </div>
-        {% endfor %}
+        {% endif %}
         <div class="col-auto">
-          <input type="submit" class="btn btn-outline-primary" name="force_proceed" value="Игнорировать и добавить">
+          <input type="submit" class="btn btn-primary" value="Добавить">
         </div>
-      {% endif %}
-      <div class="col-auto">
-        <input type="submit" class="btn btn-primary" value="Добавить">
-      </div>
-    </form></td>
-  </tr>
-  {% endif %}
+      </form></td>
+    </tr>
+    {% endif %}
+  </tbody>
 </table>
 {% endblock %}

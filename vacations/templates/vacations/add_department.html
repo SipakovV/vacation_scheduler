@@ -6,12 +6,41 @@
 {% endblock %}
 
 {% block content %}
-<section>
-    <h3>Добавление отдела</h3><hr>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_table }}
-        <input type="submit" class="button" value="Добавить">
-    </form>
-</section>
+<form method="post">
+  {% csrf_token %}
+  <table class="form table align-middle">
+    <thead>
+      <tr class="">
+        <th class="">Добавление отдела</th>
+        <th class="">
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="">
+          <td class="">Аббревиатура отдела</td>
+          <td>{{ form.title }}</td>
+      </tr>
+      <tr class="">
+          <td class="">Название отдела</td>
+          <td>{{ form.full_title }}</td>
+      </tr>
+    </tbody>
+  </table>
+  {% if form.errors %}
+    {% for field in form %}
+      {% for error in field.errors %}
+        <div class="alert alert-danger">
+          <strong>{{ error|escape }}</strong>
+        </div>
+      {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+      <div class="alert alert-danger" style="color: red;">
+        <strong>{{ error|escape }}</strong>
+      </div>
+    {% endfor %}
+  {% endif %}
+  <input type="submit" class="btn btn-primary" value="Сохранить">
+</form>
 {% endblock %}
