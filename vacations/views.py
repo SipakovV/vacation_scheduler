@@ -152,16 +152,20 @@ class EmployeeCreateView(SuccessMessageMixin, CreateView):
 
     def get(self, *args, **kwargs):
         user = self.request.user
+        department = Department.objects.get(pk=int(self.kwargs['department_id']))
         if not user.is_staff:
-            if not (user.employees_permission_level >= EDIT):  # ++ if not HR
+            if not (user.employees_permission_level >= EDIT
+                    or user.is_department_manager and department == user.bound_employee.department):
                 messages.warning(self.request, 'Недостаточно прав для добавления сотрудников')
                 return redirect('vacations:index')
         return super(EmployeeCreateView, self).get(args, kwargs)
 
     def post(self, *args, **kwargs):
         user = self.request.user
+        department = Department.objects.get(pk=int(self.kwargs['department_id']))
         if not user.is_staff:
-            if not (user.employees_permission_level >= EDIT):  # ++ if not HR
+            if not (user.employees_permission_level >= EDIT
+                    or user.is_department_manager and department == user.bound_employee.department):
                 messages.warning(self.request, 'Недостаточно прав для добавления сотрудников')
                 return redirect('vacations:index')
         return super(EmployeeCreateView, self).post(args, kwargs)
@@ -192,7 +196,7 @@ class EmployeeCreateView(SuccessMessageMixin, CreateView):
 
 class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
     template_name = 'vacations/edit_employee.html'
-    success_url = reverse_lazy('vacations:index')
+    #success_url = reverse_lazy('vacations:index')
     model = Employee
     form_class = EmployeeUpdateForm
     #fields = ('personnel_number', 'department', 'specialty', 'replaces', 'entry_date', 'max_vacation_days')
@@ -206,9 +210,11 @@ class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
     def get(self, *args, **kwargs):
         user = self.request.user
         employee = Employee.objects.get(pk=self.kwargs['pk'])
+        logger.debug('User: ' + str(user.bound_employee.department))
+        logger.debug('Employee: ' + str(employee.department))
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT \
-                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:
+            if not (user.employees_permission_level >= EDIT
+                    or user.is_department_manager and user.bound_employee.department == employee.department):
                 messages.warning(self.request, 'Недостаточно прав для редактирования данных сотрудников')
                 return redirect('vacations:details', kwargs['pk'])
         return super(EmployeeUpdateView, self).get(args, kwargs)
@@ -217,8 +223,8 @@ class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
         user = self.request.user
         employee = Employee.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT \
-                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:
+            if not (user.employees_permission_level >= EDIT
+                    or user.is_department_manager and user.bound_employee.department == employee.department):
                 messages.warning(self.request, 'Недостаточно прав для редактирования данных сотрудников')
                 return redirect('vacations:details', kwargs['pk'])
         return super(EmployeeUpdateView, self).post(args, kwargs)
@@ -243,6 +249,9 @@ class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
 
         return context
 
+    def get_success_url(self):
+        return reverse_lazy('vacations:details', kwargs={'employee_id': self.object.pk})
+
 
 class EmployeeDeleteView(SuccessMessageMixin, DeleteView):
     template_name = 'vacations/delete_employee.html'
@@ -258,8 +267,8 @@ class EmployeeDeleteView(SuccessMessageMixin, DeleteView):
         user = self.request.user
         employee = Employee.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT \
-                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:  # ++ if not HR
+            if not (user.employees_permission_level >= EDIT
+                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk):  # ++ if not HR
                 messages.warning(self.request, 'Недостаточно прав для удаления сотрудников')
                 return redirect('vacations:details', kwargs['employee_id'])
         return super(EmployeeDeleteView, self).get(args, kwargs)
@@ -268,8 +277,8 @@ class EmployeeDeleteView(SuccessMessageMixin, DeleteView):
         user = self.request.user
         employee = Employee.objects.get(pk=self.kwargs['pk'])
         if not user.is_staff:
-            if not user.employees_permission_level >= EDIT \
-                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk:  # ++ if not HR
+            if not (user.employees_permission_level >= EDIT
+                    or user.is_department_manager and user.bound_employee.department.pk == employee.department.pk):  # ++ if not HR
                 messages.warning(self.request, 'Недостаточно прав для удаления сотрудников')
                 return redirect('vacations:details', kwargs['employee_id'])
         return super(EmployeeDeleteView, self).post(args, kwargs)

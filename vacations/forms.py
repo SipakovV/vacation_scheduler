@@ -27,6 +27,12 @@ class EmployeeForm(ModelForm):
         model = Employee
         fields = ('personnel_number', 'last_name', 'first_name', 'middle_name', 'department', 'specialty', 'replaces',
                   'entry_date', 'max_vacation_days', 'vacation_days')
+        error_messages = {
+            # NON_FIELD_ERRORS: {
+            'replaces': {
+                'different_department': 'Замещаемый сотрудник должен принадлежать тому же отделу!',
+            },
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,6 +50,18 @@ class EmployeeForm(ModelForm):
         cleaned_data = super(EmployeeForm, self).clean()
         cleaned_data['vacation_days'] = cleaned_data['max_vacation_days']
 
+        if 'force_proceed' in self.data:
+            return cleaned_data
+
+        errors_list = []
+        if cleaned_data['replaces'] is not None:
+            if cleaned_data['replaces'].department != cleaned_data['department']:
+                errors_list.append(ValidationError(self.fields['replaces'].error_messages['different_department']))
+        if errors_list:
+            raise ValidationError(errors_list)
+
+        return cleaned_data
+
 
 class EmployeeUpdateForm(ModelForm):
     class Meta:
@@ -52,6 +70,13 @@ class EmployeeUpdateForm(ModelForm):
             'vacation_days',
             'rating',
         )
+        error_messages = {
+            # NON_FIELD_ERRORS: {
+            'replaces': {
+                'different_department': 'Замещаемый сотрудник должен принадлежать тому же отделу!',
+                'replaces_self': 'Сотрудник не может замещать самого себя!',
+            },
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,6 +86,25 @@ class EmployeeUpdateForm(ModelForm):
             self.fields[name].widget.attrs.update({
                 'class': 'form-control',
             })
+
+    def clean(self):
+        cleaned_data = super(EmployeeUpdateForm, self).clean()
+
+        if cleaned_data['replaces'] is not None:
+            if cleaned_data['replaces'].pk == self.instance.pk:
+                raise ValidationError((self.fields['replaces'].error_messages['replaces_self']))
+
+        if 'force_proceed' in self.data:
+            return cleaned_data
+
+        errors_list = []
+
+        if cleaned_data['replaces'] is not None:
+            if cleaned_data['replaces'].department != cleaned_data['department']:
+                errors_list.append(ValidationError(self.fields['replaces'].error_messages['different_department']))
+        if errors_list:
+            raise ValidationError(errors_list)
+        return cleaned_data
 
 
 class DepartmentForm(ModelForm):

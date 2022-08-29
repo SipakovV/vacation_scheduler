@@ -39,6 +39,7 @@ class Department(models.Model):
         models.IntegerField(default=0),
         size=12,
         default=list,
+        verbose_name='Отпускные дни по месяцам',
     )
 
     def __init__(self, *args, **kwargs):
@@ -110,7 +111,7 @@ class Employee(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, verbose_name='Отдел')
     replaces = models.ForeignKey('self', on_delete=models.SET_NULL, verbose_name='Замещает сотрудника', default=None,
                                  blank=True, null=True)
-    rating = models.FloatField(verbose_name='Рейтинг', default=0)
+    rating = models.FloatField(verbose_name='Коэффициент отпускного счастья', default=0)
     entry_date = models.DateField(verbose_name='Дата начала работы', default=datetime.date.min)
     vacation_days = models.IntegerField(verbose_name='Отпускных дней осталось', default=38)
     max_vacation_days = models.IntegerField(verbose_name='Отпускных дней в году', default=38)

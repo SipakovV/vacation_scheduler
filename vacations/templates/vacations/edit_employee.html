@@ -75,6 +75,7 @@
         <strong>{{ error|escape }}</strong>
       </div>
     {% endfor %}
+    <input type="submit" class="btn btn-outline-primary" name="force_proceed" value="Игнорировать и сохранить">
   {% endif %}
   <input type="submit" class="btn btn-primary" value="Сохранить">
   <a class="" href="{% url 'vacations:employee_delete_form' employee.pk %}">

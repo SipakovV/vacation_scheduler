@@ -12,13 +12,13 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ('title',)
-    list_display_links = ('title',)
-    search_fields = ('title',)
+    list_display = ('title', 'full_title',)
+    list_display_links = ('title', 'full_title',)
+    search_fields = ('title', 'full_title',)
 
 
 class VacationAdmin(admin.ModelAdmin):
-    list_display = ('employee', 'start', 'end')
+    list_display = ('employee', 'start', 'end', 'relevance')
     search_fields = ('employee',)
 
 

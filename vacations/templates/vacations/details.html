@@ -12,7 +12,7 @@
       <th class="">
         {{ employee }}
       
-        {% if user.employees_permission_level >= EDIT or user.is_staff %}
+        {% if user.employees_permission_level >= EDIT or user.is_staff or user.is_department_manager and user.bound_employee.department == employee.department %}
           
           <a class="" href="{% url 'vacations:employee_update_form' employee.pk %}">
             <button class="btn btn-light btn-sm float-end float-bottom"><img src="{% static 'images/pencil.svg' %}" alt=""> Редактировать</button>
@@ -43,7 +43,7 @@
       <td>{{ employee.entry_date }}</td>
     </tr>
     <tr class="">
-      <td class="">Рейтинг</td>
+      <td class="">Коэффициент "отпускного счастья"</td>
       <td>{{ employee.rating }}</td>
     </tr>
     <tr class="">
