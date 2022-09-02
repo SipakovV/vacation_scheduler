@@ -13,7 +13,7 @@
         <th class="">Коэффициент ОС</th>
         <th class="">ФИО</th>
         <th class="">Замещает</th>
-        <th class="">Отпуска</th>
+        <th class="">Отпуска за последние 3 года</th>
       </tr>
     </thead>
     <tbody>
@@ -39,7 +39,7 @@
           <td>
             <!--ul class="list-group py-0 my-0"-->
               {% for vacation in vacations %}
-                {% if vacation.employee == employee %}
+                {% if vacation.employee == employee and vacation.relevance >= RELEVANT %}
                   <label class="{% if vacation.relevance == PLANNED %}text-success
                   {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}</label><br>
                 {% endif %}

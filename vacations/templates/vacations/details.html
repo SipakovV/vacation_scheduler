@@ -103,14 +103,16 @@
             {{ form.start.label_tag }}
           </div>
           <div class="col-auto">
-            <input type="date" name="start" required>
+            {{ form.start }}
+            <!--input type="date" name="start" required-->
           </div>
         
           <div class="col-auto">
             {{ form.end.label_tag }}
           </div>
           <div class="col-auto">
-            <input type="date" name="end" required>
+            {{ form.end }}
+            <!--input type="date" name="end" required-->
           </div>
         {{ form.employee.as_hidden }}
   

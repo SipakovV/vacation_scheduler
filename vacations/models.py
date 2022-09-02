@@ -184,6 +184,28 @@ class Vacation(models.Model):
 
         return relevant_flag
 
+    def adjust_relevance(self):
+        start = getattr(self, 'start')
+        end = getattr(self, 'end')
+        relevance = getattr(self, 'relevance')
+        relevance = ARCHIVE
+
+        current_year = datetime.date.today().year
+        relevance_year = current_year - 2
+
+        if start.year >= relevance_year:
+            relevance = RELEVANT
+
+            if start.year == current_year + 1:
+                relevance = PLANNED
+
+        logger.debug('relevance_before=' + str(getattr(self, 'relevance')))
+
+        self.relevance = relevance
+        self.save()
+
+        logger.debug('relevance_after=' + str(getattr(self, 'relevance')))
+
     def change_values(self, reverse=False):
         if getattr(self, 'relevance') >= RELEVANT:
             empl = Employee.objects.get(pk=self.employee.pk)

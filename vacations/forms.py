@@ -127,6 +127,7 @@ class VacationForm(ModelForm):
         error_messages = {
             #NON_FIELD_ERRORS: {
             'end': {
+                'far_future': 'Отпуск задан дальше, чем на следующий год!',
                 'invalid_period': 'Неправильный период!',
                 'vacation_days': 'Недостаточно отпускных!',
                 'intersection': 'Заданный отпуск пересекается с уже имеющимся отпуском!',
@@ -158,22 +159,19 @@ class VacationForm(ModelForm):
         employee = cleaned_data.get('employee')
 
         current_year = datetime.date.today().year
-        relevance_date = datetime.date.today().replace(year=current_year - 3)
+        relevance_year = current_year - 2
         relevant_flag = False
         current_year_flag = False
 
         cleaned_data['relevance'] = ARCHIVE
 
-        if start > relevance_date:
+        if start.year >= relevance_year:
             relevant_flag = True
             cleaned_data['relevance'] = RELEVANT
 
-        if start.year == current_year:
+        if start.year == current_year + 1:
             current_year_flag = True
             cleaned_data['relevance'] = PLANNED
-
-        if 'force_proceed' in self.data:
-            return cleaned_data
 
         logger.debug(('clean ', employee))
 
@@ -191,11 +189,18 @@ class VacationForm(ModelForm):
         intersection_flag = False
         replaced_employee_flag = False
         month_vacation_days_flag = False
+        too_far_future_flag = False
 
         if start and end:
             if start >= end:
                 invalid_period_flag = True
                 #raise ValidationError('Неправильный период!')
+
+            if 'force_proceed' in self.data and not invalid_period_flag:
+                return cleaned_data
+
+            if start.year > current_year + 1:
+                too_far_future_flag = True
 
             if cleaned_data['relevance'] >= RELEVANT:
                 for vacation in own_vacations:
@@ -232,6 +237,8 @@ class VacationForm(ModelForm):
 
         errors_list = []
 
+        if too_far_future_flag:
+            errors_list.append(ValidationError(self.fields['end'].error_messages['far_future']))
         if vacation_days_flag:
             errors_list.append(ValidationError(self.fields['end'].error_messages['vacation_days']))
         if invalid_period_flag:

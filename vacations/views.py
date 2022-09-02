@@ -111,7 +111,7 @@ class DepartmentDeleteView(SuccessMessageMixin, DeleteView):
     def get(self, *args, **kwargs):
         user = self.request.user
         if not user.is_staff:
-            if not (user.is_department_manager and user.employees_permission_level >= EDIT):  # ++ if not HR
+            if not (user.is_department_manager and user.employees_permission_level >= EDIT):
                 messages.warning(self.request, 'Недостаточно прав для удаления отдела')
                 return redirect('vacations:index')
         return super(DepartmentDeleteView, self).get(args, kwargs)
@@ -119,18 +119,17 @@ class DepartmentDeleteView(SuccessMessageMixin, DeleteView):
     def post(self, *args, **kwargs):
         user = self.request.user
         if not user.is_staff:
-            if not (user.is_department_manager and user.employees_permission_level >= EDIT):  # ++ if not HR
+            if not (user.is_department_manager and user.employees_permission_level >= EDIT):
                 messages.warning(self.request, 'Недостаточно прав для удаления отдела')
                 return redirect('vacations:index')
         return super(DepartmentDeleteView, self).post(args, kwargs)
 
     def get_context_data(self, **kwargs):
-        #print('kwargs(views) = ', self.kwargs['employee_id'], type(self.kwargs['employee_id']))
         context = super().get_context_data(**kwargs)
 
         kwargs['user'] = self.request.user
 
-        department = Department.objects.get(pk=self.kwargs['department_id'])
+        department = Department.objects.get(pk=self.kwargs['pk'])
         context['employees'] = Employee.objects.all()
         context['vacations'] = Vacation.objects.all()
         context['departments'] = Department.objects.all()
@@ -210,8 +209,6 @@ class EmployeeUpdateView(SuccessMessageMixin, UpdateView):
     def get(self, *args, **kwargs):
         user = self.request.user
         employee = Employee.objects.get(pk=self.kwargs['pk'])
-        logger.debug('User: ' + str(user.bound_employee.department))
-        logger.debug('Employee: ' + str(employee.department))
         if not user.is_staff:
             if not (user.employees_permission_level >= EDIT
                     or user.is_department_manager and user.bound_employee.department == employee.department):
@@ -426,6 +423,8 @@ def by_department(request, department_id):
 
     user = request.user
 
+    logger.debug(int(datetime.date.today().year - 1))
+
     #current_department.test_vacation_days()
 
     if not user.is_staff:
@@ -463,14 +462,14 @@ def recalculate_department(request, department_id):
         vacations = Vacation.objects.filter(employee=employee.pk)
 
         for vacation in vacations:
-            vacation.change_values()
+            vacation.adjust_relevance()
             #if vacation.relevance == PLANNED:
             #    current_department.change_vacation_days(vacation.start, vacation.end)
 
     return redirect('vacations:by_department', department_id)
 
 
-def generate_t7_form(department_id=None):
+def generate_t7_form(department_id=None, year=None):
     if department_id is not None:
         departments = [Department.objects.get(pk=department_id)]
     else:
@@ -488,7 +487,10 @@ def generate_t7_form(department_id=None):
     for department in departments:
         employees = Employee.objects.filter(department=department.pk)
         for employee in employees:
-            employee_vacations = Vacation.objects.filter(employee=employee.pk, relevance=PLANNED)
+            if year is None:
+                employee_vacations = Vacation.objects.filter(employee=employee.pk, relevance=PLANNED)
+            else:
+                employee_vacations = Vacation.objects.filter(employee=employee.pk, start__year=year)
             employee_vacations_count = 0
             current_row = 20 + entries_count
             for vacation in employee_vacations:
@@ -560,7 +562,7 @@ def generate_t7_form(department_id=None):
 
 
 @login_required
-def export_t7_department(request, department_id):
+def export_t7_department(request, department_id, year):
     user = request.user
 
     if not user.is_staff:
@@ -569,10 +571,13 @@ def export_t7_department(request, department_id):
             #messages.warning(request, 'Недостаточно прав для доступа к странице')
             return redirect('vacations:details', user.bound_employee.pk)
 
-    wb = generate_t7_form(department_id=department_id)
+    if year == datetime.date.today().year + 1:
+        wb = generate_t7_form(department_id=department_id)
+    else:
+        wb = generate_t7_form(department_id=department_id, year=year)
 
     department_title = Department.objects.get(pk=department_id).title
-    filename = f'Форма Т-7 (График отпусков) {department_title}.xlsx'
+    filename = f'Форма Т-7 (График отпусков) {department_title} {year}.xlsx'
 
     response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/ms-excel')
     response['Content-Disposition'] = "attachment; filename=" + escape_uri_path(filename)
@@ -580,16 +585,19 @@ def export_t7_department(request, department_id):
 
 
 @login_required
-def export_t7_all(request):
+def export_t7_all(request, year):
     user = request.user
 
     if not user.is_staff:
         if user.employees_permission_level < VIEW:
             return redirect('vacations:details', user.bound_employee.pk)
 
-    wb = generate_t7_form()
+    if year == datetime.date.today().year + 1:
+        wb = generate_t7_form()
+    else:
+        wb = generate_t7_form(year=year)
 
-    filename = 'Форма Т-7 (График отпусков).xlsx'
+    filename = f'Форма Т-7 (График отпусков) {year}.xlsx'
 
     response = HttpResponse(content=save_virtual_workbook(wb), content_type='application/ms-excel')
     response['Content-Disposition'] = "attachment; filename=" + escape_uri_path(filename)

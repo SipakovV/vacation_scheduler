@@ -17,6 +17,9 @@ def login_page(request):
     form = AuthenticationForm()
 
     if request.method == 'POST':
+        if request.user.is_authenticated:
+            return redirect(reverse_lazy('vacations:index'))
+
         username = request.POST.get('username')
         password = request.POST.get('password')
 

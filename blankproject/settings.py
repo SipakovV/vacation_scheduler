@@ -111,7 +111,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
 
-                'vacations.context_processors.load_permission_codes',
+                'vacations.context_processors.load_vacations_global_context',
             ],
         },
     },

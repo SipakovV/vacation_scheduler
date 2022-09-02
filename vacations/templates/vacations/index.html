@@ -4,7 +4,21 @@
 
 {% block leftbar %}
   <span class="fs-5 d-none d-sm-inline"><a class="nav-link text-center"><strong>Все отделы</strong></a></span>
-  <a href="{% url 'vacations:export_t7_all' %}" class="list-group-item list-group-item-action">Экспорт формы Т-7</a>
+
+  <div class="btn-group dropend">
+    <button type="button"
+            class="list-group-item list-group-item-action dropdown-toggle text-break"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="Экспортировать данные об отпусках в выбранном году в форму Т-7">
+      Экспорт Т-7
+    </button>
+    <ul class="dropdown-menu">
+      {% for year in relevant_years %}
+        <li><a class="dropdown-item" href="{% url 'vacations:export_t7_all' year %}">{{ year }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
 {% endblock %}
 
 {% block content %}
@@ -15,7 +29,7 @@
         <th scope="col" class="">Отдел</th>
         <th scope="col" class="">ФИО</th>
         <th scope="col" class="">Замещает</th>
-        <th scope="col" class="">Отпуска</th>
+        <th scope="col" class="">Отпуска за последние 3 года</th>
       </tr>
     </thead>
     <tbody>
@@ -44,7 +58,7 @@
           </td>
           <td>
             {% for vacation in vacations %}
-              {% if vacation.employee == employee %}
+              {% if vacation.employee == employee and vacation.relevance >= RELEVANT %}
                 <label class="{% if vacation.relevance == PLANNED %}text-success
                 {% elif vacation.relevance == ARCHIVE %}text-secondary{% endif %}">{{ vacation.start|date:"SHORT_DATE_FORMAT" }} - {{ vacation.end|date:"SHORT_DATE_FORMAT" }}</label><br>
               {% endif %}
